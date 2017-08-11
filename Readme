@@ -1,4 +1,4 @@
-AllPatch.patch 是一个用于为OpenSSL 1.0.2l版本添加ChaCha20-Poly1305, Camellia-GCM, X25519曲线以及硬编码的等价加密组的Patch.
+sslPatch.patch 是一个用于为OpenSSL 1.0.2l版本添加ChaCha20-Poly1305, Camellia-GCM, X25519曲线以及硬编码的等价加密组的Patch.
 
 
 如何编译：
@@ -9,8 +9,7 @@ AllPatch.patch 是一个用于为OpenSSL 1.0.2l版本添加ChaCha20-Poly1305, Ca
 sudo apt-get install build-essential libpcre3 libpcre3-dev zlib1g-dev unzip git autoconf libtool automake
 
 2.获取必要组件
-  2.1nginx-ct
-  nginx-ct 模块用于启用 Certificate Transparency 功能。直接从 github 上获取源码：
+  2.1nginx-ct  nginx-ct 模块用于启用 Certificate Transparency 功能。直接从 github 上获取源码：
   #bash
   wget -O nginx-ct.zip -c https://github.com/grahamedgecombe/nginx-ct/archive/v1.3.2.zip
   unzip nginx-ct.zip
@@ -27,7 +26,13 @@ sudo apt-get install build-essential libpcre3 libpcre3-dev zlib1g-dev unzip git 
   make
   sudo make install
   cd  ../
-  默认 libbrotli 装在 /usr/local/lib/libbrotlienc.so.1，如果后续启动 Nginx 时提示找不到这个文件，那么可以把它软链到 /lib 或者 /usr/lib 目录。如果还有问题，请参考这篇文章查找解决方案。
+  默认 libbrotli 装在 /usr/local/lib/libbrotlienc.so.1，如果后续启动 Nginx 时提示找不到这个文件，那么可以把它软链到 /lib 或者 /usr/lib 目录。
+  # 64 位系统
+ ln -s /usr/local/lib/libbrotlienc.so.1 /lib64
+
+ # 32 位系统
+ ln -s /usr/local/lib/libbrotlienc.so.1 /lib
+  
   接下来获取 ngx_brotli 源码：
   #Bash
 
@@ -85,7 +90,7 @@ sudo make install
 sudo nano /etc/init.d/nginx
 
 输入以下内容:
-
+--
 
 #! /bin/sh
 
@@ -108,7 +113,8 @@ test -x $DAEMON || exit 0
 
 # Include nginx defaults if available
 if [ -f /etc/default/nginx ] ; then
-  . /etc/default/nginx
+
+. /etc/default/nginx
 fi
 
 set -e
@@ -155,8 +161,7 @@ esac
 
 exit 0
 
-Ctrl+X退出
-
+快捷键Ctrl+X退出，提示保存时键入y。
 增加执行权限：
 
 sudo chmod a+x /etc/init.d/nginx
@@ -173,8 +178,10 @@ Nginx 全局配置
 到此为止，Nginx 已经安装完毕。再来修改一下它的全局配置，打开 /usr/local/nginx/conf/nginx.conf，新增或修改https://github.com/HamJin/nginxconfig/nginx.conf中内容.
 
 要让网站支持浏览器通过 HTTP/2 访问必须先部署 HTTPS，要部署 HTTPS 必须先有合法的证书。本博客目前在用 RapidSSL 单域名证书，在 NameCheap 购买。另外，我还申请了 Let's Encrypt 的免费证书备用。一般情况下，个人使用 Let's Encrypt 的免费证书就足够了，还可以节省一笔开销。
-要申请 Let's Encrypt 证书，推荐使用 Neilpang/acme.sh 这个小巧无依赖的命令行工具，或者参考我的这篇文章：Let's Encrypt，免费好用的 HTTPS 证书。
-注：Let's Encrypt 已于 2016 年 3 月 26 日修复 Windows XP 下的兼容问题，本站也第一时间切换到 Let's Encrypt 证书。
+要申请 Let's Encrypt 证书，推荐使用 Neilpang/acme.sh 这个小巧无依赖的命令行工具，
+注：Let's Encrypt 已于 2016 年 3 月 26 日修复 Windows XP 下的兼容问题，2018年一月计划支持通配符证书，2017年9月1日之前计划ECDSA根证书
+
+
 WEB 站点配置
 以下是本博客站点完整配置：
 
