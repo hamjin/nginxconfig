@@ -1,5 +1,5 @@
 sslpatch.patch 是一个用于为OpenSSL 1.0.2l版本添加ChaCha20-Poly1305, Camellia-GCM, X25519曲线以及硬编码的等价加密组的Patch.
-
+nginx.patch  是一个用于为nginx-1.13.1版本添加Dymanic TLS Records, HTTP2+SPDY,HTTP2-HPACK头部压缩完整编码的Patch.
 
 如何编译：
 1.安装依赖
