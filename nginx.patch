@@ -1,0 +1,3673 @@
+diff -r -N -u20 a/auto/modules b/auto/modules
+--- a/auto/modules	2017-05-30 22:55:23.000000000 +0800
++++ b/auto/modules	2017-08-22 18:53:30.303008000 +0800
+@@ -117,72 +117,74 @@
+     fi
+ 
+ 
+     # the module order is important
+     #     ngx_http_static_module
+     #     ngx_http_gzip_static_module
+     #     ngx_http_dav_module
+     #     ngx_http_autoindex_module
+     #     ngx_http_index_module
+     #     ngx_http_random_index_module
+     #
+     #     ngx_http_access_module
+     #     ngx_http_realip_module
+     #
+     #
+     # the filter order is important
+     #     ngx_http_write_filter
+     #     ngx_http_header_filter
+     #     ngx_http_chunked_filter
+     #     ngx_http_v2_filter
++    #     ngx_http_spdy_filter
+     #     ngx_http_range_header_filter
+     #     ngx_http_gzip_filter
+     #     ngx_http_postpone_filter
+     #     ngx_http_ssi_filter
+     #     ngx_http_charset_filter
+     #         ngx_http_xslt_filter
+     #         ngx_http_image_filter
+     #         ngx_http_sub_filter
+     #         ngx_http_addition_filter
+     #         ngx_http_gunzip_filter
+     #         ngx_http_userid_filter
+     #         ngx_http_headers_filter
+     #     ngx_http_copy_filter
+     #     ngx_http_range_body_filter
+     #     ngx_http_not_modified_filter
+     #     ngx_http_slice_filter
+ 
+     ngx_module_type=HTTP_FILTER
+     HTTP_FILTER_MODULES=
+ 
+     ngx_module_order="ngx_http_static_module \
+                       ngx_http_gzip_static_module \
+                       ngx_http_dav_module \
+                       ngx_http_autoindex_module \
+                       ngx_http_index_module \
+                       ngx_http_random_index_module \
+                       ngx_http_access_module \
+                       ngx_http_realip_module \
+                       ngx_http_write_filter_module \
+                       ngx_http_header_filter_module \
+                       ngx_http_chunked_filter_module \
+                       ngx_http_v2_filter_module \
++                      ngx_http_spdy_filter_module \
+                       ngx_http_range_header_filter_module \
+                       ngx_http_gzip_filter_module \
+                       ngx_http_postpone_filter_module \
+                       ngx_http_ssi_filter_module \
+                       ngx_http_charset_filter_module \
+                       ngx_http_xslt_filter_module \
+                       ngx_http_image_filter_module \
+                       ngx_http_sub_filter_module \
+                       ngx_http_addition_filter_module \
+                       ngx_http_gunzip_filter_module \
+                       ngx_http_userid_filter_module \
+                       ngx_http_headers_filter_module \
+                       ngx_http_copy_filter_module \
+                       ngx_http_range_body_filter_module \
+                       ngx_http_not_modified_filter_module \
+                       ngx_http_slice_filter_module"
+ 
+     if :; then
+         ngx_module_name=ngx_http_write_filter_module
+         ngx_module_incs=
+@@ -210,40 +212,53 @@
+         ngx_module_incs=
+         ngx_module_deps=
+         ngx_module_srcs=src/http/modules/ngx_http_chunked_filter_module.c
+         ngx_module_libs=
+         ngx_module_link=YES
+ 
+         . auto/module
+     fi
+ 
+     if [ $HTTP_V2 = YES ]; then
+         ngx_module_name=ngx_http_v2_filter_module
+         ngx_module_incs=
+         ngx_module_deps=
+         ngx_module_srcs=src/http/v2/ngx_http_v2_filter_module.c
+         ngx_module_libs=
+         ngx_module_link=$HTTP_V2
+ 
+         . auto/module
+     fi
+ 
++    if [ $HTTP_SPDY = YES ]; then
++        have=NGX_HTTP_SPDY . auto/have
++        USE_ZLIB=YES
++        ngx_module_name=ngx_http_spdy_filter_module
++        ngx_module_incs=
++        ngx_module_deps=
++        ngx_module_srcs=src/http/ngx_http_spdy_filter_module.c
++        ngx_module_libs=
++        ngx_module_link=$HTTP_SPDY
++
++        . auto/module
++    fi
++
+     if :; then
+         ngx_module_name=ngx_http_range_header_filter_module
+         ngx_module_incs=
+         ngx_module_deps=
+         ngx_module_srcs=src/http/modules/ngx_http_range_filter_module.c
+         ngx_module_libs=
+         ngx_module_link=YES
+ 
+         . auto/module
+     fi
+ 
+     if [ $HTTP_GZIP = YES ]; then
+         have=NGX_HTTP_GZIP . auto/have
+         USE_ZLIB=YES
+ 
+         ngx_module_name=ngx_http_gzip_filter_module
+         ngx_module_incs=
+         ngx_module_deps=
+         ngx_module_srcs=src/http/modules/ngx_http_gzip_filter_module.c
+         ngx_module_libs=
+@@ -419,40 +434,57 @@
+     ngx_module_type=HTTP
+ 
+     if [ $HTTP_V2 = YES ]; then
+         have=NGX_HTTP_V2 . auto/have
+ 
+         ngx_module_name=ngx_http_v2_module
+         ngx_module_incs=src/http/v2
+         ngx_module_deps="src/http/v2/ngx_http_v2.h \
+                          src/http/v2/ngx_http_v2_module.h"
+         ngx_module_srcs="src/http/v2/ngx_http_v2.c \
+                          src/http/v2/ngx_http_v2_table.c \
+                          src/http/v2/ngx_http_v2_huff_decode.c \
+                          src/http/v2/ngx_http_v2_huff_encode.c \
+                          src/http/v2/ngx_http_v2_module.c"
+         ngx_module_libs=
+         ngx_module_link=$HTTP_V2
+ 
+         . auto/module
+     fi
+ 
++    if [ $HTTP_V2_HPACK_ENC = YES ]; then
++        have=NGX_HTTP_V2_HPACK_ENC . auto/have
++    fi
++
++    if [ $HTTP_SPDY = YES ]; then
++        have=NGX_HTTP_SPDY . auto/have
++        ngx_module_name=ngx_http_spdy_module
++        ngx_module_incs=src/http
++        ngx_module_deps="src/http/ngx_http_spdy.h src/http/ngx_http_spdy_module.h"
++        ngx_module_srcs="src/http/ngx_http_spdy.c \
++                         src/http/ngx_http_spdy_module.c"
++        ngx_module_libs=
++        ngx_module_link=$HTTP_SPDY
++
++        . auto/module
++    fi
++
+     if :; then
+         ngx_module_name=ngx_http_static_module
+         ngx_module_incs=
+         ngx_module_deps=
+         ngx_module_srcs=src/http/modules/ngx_http_static_module.c
+         ngx_module_libs=
+         ngx_module_link=YES
+ 
+         . auto/module
+     fi
+ 
+     if [ $HTTP_GZIP_STATIC = YES ]; then
+         have=NGX_HTTP_GZIP . auto/have
+ 
+         ngx_module_name=ngx_http_gzip_static_module
+         ngx_module_incs=
+         ngx_module_deps=
+         ngx_module_srcs=src/http/modules/ngx_http_gzip_static_module.c
+         ngx_module_libs=
+         ngx_module_link=$HTTP_GZIP_STATIC
+diff -r -N -u20 a/auto/options b/auto/options
+--- a/auto/options	2017-05-30 22:55:23.000000000 +0800
++++ b/auto/options	2017-08-22 18:55:37.027008000 +0800
+@@ -40,42 +40,44 @@
+ 
+ EVENT_SELECT=NO
+ EVENT_POLL=NO
+ 
+ USE_THREADS=NO
+ 
+ NGX_FILE_AIO=NO
+ 
+ HTTP=YES
+ 
+ NGX_HTTP_LOG_PATH=
+ NGX_HTTP_CLIENT_TEMP_PATH=
+ NGX_HTTP_PROXY_TEMP_PATH=
+ NGX_HTTP_FASTCGI_TEMP_PATH=
+ NGX_HTTP_UWSGI_TEMP_PATH=
+ NGX_HTTP_SCGI_TEMP_PATH=
+ 
+ HTTP_CACHE=YES
+ HTTP_CHARSET=YES
+ HTTP_GZIP=YES
+-HTTP_SSL=NO
+-HTTP_V2=NO
++HTTP_SSL=YES
++HTTP_V2=YES
++HTTP_SPDY=YES
++HTTP_V2_HPACK_ENC=YES
+ HTTP_SSI=YES
+ HTTP_POSTPONE=NO
+ HTTP_REALIP=NO
+ HTTP_XSLT=NO
+ HTTP_IMAGE_FILTER=NO
+ HTTP_SUB=NO
+ HTTP_ADDITION=NO
+ HTTP_DAV=NO
+ HTTP_ACCESS=YES
+ HTTP_AUTH_BASIC=YES
+ HTTP_AUTH_REQUEST=NO
+ HTTP_USERID=YES
+ HTTP_SLICE=NO
+ HTTP_AUTOINDEX=YES
+ HTTP_RANDOM_INDEX=NO
+ HTTP_STATUS=NO
+ HTTP_GEO=YES
+ HTTP_GEOIP=NO
+ HTTP_MAP=YES
+ HTTP_SPLIT_CLIENTS=YES
+@@ -204,40 +206,42 @@
+ 
+         --with-file-aio)                 NGX_FILE_AIO=YES           ;;
+ 
+         --with-ipv6)
+             NGX_POST_CONF_MSG="$NGX_POST_CONF_MSG
+ $0: warning: the \"--with-ipv6\" option is deprecated"
+         ;;
+ 
+         --without-http)                  HTTP=NO                    ;;
+         --without-http-cache)            HTTP_CACHE=NO              ;;
+ 
+         --http-log-path=*)               NGX_HTTP_LOG_PATH="$value" ;;
+         --http-client-body-temp-path=*)  NGX_HTTP_CLIENT_TEMP_PATH="$value" ;;
+         --http-proxy-temp-path=*)        NGX_HTTP_PROXY_TEMP_PATH="$value" ;;
+         --http-fastcgi-temp-path=*)      NGX_HTTP_FASTCGI_TEMP_PATH="$value" ;;
+         --http-uwsgi-temp-path=*)        NGX_HTTP_UWSGI_TEMP_PATH="$value" ;;
+         --http-scgi-temp-path=*)         NGX_HTTP_SCGI_TEMP_PATH="$value" ;;
+ 
+         --with-http_ssl_module)          HTTP_SSL=YES               ;;
+         --with-http_v2_module)           HTTP_V2=YES                ;;
++        --with-http_spdy_module)         HTTP_SPDY=YES              ;;
++        --with-http_v2_hpack_enc)        HTTP_V2_HPACK_ENC=YES      ;;
+         --with-http_realip_module)       HTTP_REALIP=YES            ;;
+         --with-http_addition_module)     HTTP_ADDITION=YES          ;;
+         --with-http_xslt_module)         HTTP_XSLT=YES              ;;
+         --with-http_xslt_module=dynamic) HTTP_XSLT=DYNAMIC          ;;
+         --with-http_image_filter_module) HTTP_IMAGE_FILTER=YES      ;;
+         --with-http_image_filter_module=dynamic)
+                                          HTTP_IMAGE_FILTER=DYNAMIC  ;;
+         --with-http_geoip_module)        HTTP_GEOIP=YES             ;;
+         --with-http_geoip_module=dynamic)
+                                          HTTP_GEOIP=DYNAMIC         ;;
+         --with-http_sub_module)          HTTP_SUB=YES               ;;
+         --with-http_dav_module)          HTTP_DAV=YES               ;;
+         --with-http_flv_module)          HTTP_FLV=YES               ;;
+         --with-http_mp4_module)          HTTP_MP4=YES               ;;
+         --with-http_gunzip_module)       HTTP_GUNZIP=YES            ;;
+         --with-http_gzip_static_module)  HTTP_GZIP_STATIC=YES       ;;
+         --with-http_auth_request_module) HTTP_AUTH_REQUEST=YES      ;;
+         --with-http_random_index_module) HTTP_RANDOM_INDEX=YES      ;;
+         --with-http_secure_link_module)  HTTP_SECURE_LINK=YES       ;;
+         --with-http_degradation_module)  HTTP_DEGRADATION=YES       ;;
+@@ -413,40 +417,42 @@
+ 
+   --user=USER                        set non-privileged user for
+                                      worker processes
+   --group=GROUP                      set non-privileged group for
+                                      worker processes
+ 
+   --build=NAME                       set build name
+   --builddir=DIR                     set build directory
+ 
+   --with-select_module               enable select module
+   --without-select_module            disable select module
+   --with-poll_module                 enable poll module
+   --without-poll_module              disable poll module
+ 
+   --with-threads                     enable thread pool support
+ 
+   --with-file-aio                    enable file AIO support
+ 
+   --with-http_ssl_module             enable ngx_http_ssl_module
+   --with-http_v2_module              enable ngx_http_v2_module
++  --with-http_spdy_module            enable ngx_http_spdy_module
++  --with-http_v2_hpack_enc           enable ngx_http_v2_hpack_enc
+   --with-http_realip_module          enable ngx_http_realip_module
+   --with-http_addition_module        enable ngx_http_addition_module
+   --with-http_xslt_module            enable ngx_http_xslt_module
+   --with-http_xslt_module=dynamic    enable dynamic ngx_http_xslt_module
+   --with-http_image_filter_module    enable ngx_http_image_filter_module
+   --with-http_image_filter_module=dynamic
+                                      enable dynamic ngx_http_image_filter_module
+   --with-http_geoip_module           enable ngx_http_geoip_module
+   --with-http_geoip_module=dynamic   enable dynamic ngx_http_geoip_module
+   --with-http_sub_module             enable ngx_http_sub_module
+   --with-http_dav_module             enable ngx_http_dav_module
+   --with-http_flv_module             enable ngx_http_flv_module
+   --with-http_mp4_module             enable ngx_http_mp4_module
+   --with-http_gunzip_module          enable ngx_http_gunzip_module
+   --with-http_gzip_static_module     enable ngx_http_gzip_static_module
+   --with-http_auth_request_module    enable ngx_http_auth_request_module
+   --with-http_random_index_module    enable ngx_http_random_index_module
+   --with-http_secure_link_module     enable ngx_http_secure_link_module
+   --with-http_degradation_module     enable ngx_http_degradation_module
+   --with-http_slice_module           enable ngx_http_slice_module
+diff -r -N -u20 a/src/core/ngx_connection.h b/src/core/ngx_connection.h
+--- a/src/core/ngx_connection.h	2017-05-30 22:55:23.000000000 +0800
++++ b/src/core/ngx_connection.h	2017-08-22 18:53:30.303008000 +0800
+@@ -99,40 +99,41 @@
+ } ngx_connection_log_error_e;
+ 
+ 
+ typedef enum {
+     NGX_TCP_NODELAY_UNSET = 0,
+     NGX_TCP_NODELAY_SET,
+     NGX_TCP_NODELAY_DISABLED
+ } ngx_connection_tcp_nodelay_e;
+ 
+ 
+ typedef enum {
+     NGX_TCP_NOPUSH_UNSET = 0,
+     NGX_TCP_NOPUSH_SET,
+     NGX_TCP_NOPUSH_DISABLED
+ } ngx_connection_tcp_nopush_e;
+ 
+ 
+ #define NGX_LOWLEVEL_BUFFERED  0x0f
+ #define NGX_SSL_BUFFERED       0x01
+ #define NGX_HTTP_V2_BUFFERED   0x02
++#define NGX_SPDY_BUFFERED      0x04
+ 
+ 
+ struct ngx_connection_s {
+     void               *data;
+     ngx_event_t        *read;
+     ngx_event_t        *write;
+ 
+     ngx_socket_t        fd;
+ 
+     ngx_recv_pt         recv;
+     ngx_send_pt         send;
+     ngx_recv_chain_pt   recv_chain;
+     ngx_send_chain_pt   send_chain;
+ 
+     ngx_listening_t    *listening;
+ 
+     off_t               sent;
+ 
+     ngx_log_t          *log;
+ 
+diff -r -N -u20 a/src/core/ngx_murmurhash.c b/src/core/ngx_murmurhash.c
+--- a/src/core/ngx_murmurhash.c	2017-05-30 22:55:24.000000000 +0800
++++ b/src/core/ngx_murmurhash.c	2017-08-22 18:52:57.803008000 +0800
+@@ -33,20 +33,80 @@
+     }
+ 
+     switch (len) {
+     case 3:
+         h ^= data[2] << 16;
+         /* fall through */
+     case 2:
+         h ^= data[1] << 8;
+         /* fall through */
+     case 1:
+         h ^= data[0];
+         h *= 0x5bd1e995;
+     }
+ 
+     h ^= h >> 13;
+     h *= 0x5bd1e995;
+     h ^= h >> 15;
+ 
+     return h;
+ }
++
++
++uint64_t
++ngx_murmur_hash2_64(u_char *data, size_t len, uint64_t seed)
++{
++    uint64_t  h, k;
++
++    h = seed ^ len;
++
++    while (len >= 8) {
++        k  = data[0];
++        k |= data[1] << 8;
++        k |= data[2] << 16;
++        k |= data[3] << 24;
++        k |= (uint64_t)data[4] << 32;
++        k |= (uint64_t)data[5] << 40;
++        k |= (uint64_t)data[6] << 48;
++        k |= (uint64_t)data[7] << 56;
++
++        k *= 0xc6a4a7935bd1e995ull;
++        k ^= k >> 47;
++        k *= 0xc6a4a7935bd1e995ull;
++
++        h ^= k;
++        h *= 0xc6a4a7935bd1e995ull;
++
++        data += 8;
++        len -= 8;
++    }
++
++    switch (len) {
++    case 7:
++        h ^= (uint64_t)data[6] << 48;
++        /* fall through */
++    case 6:
++        h ^= (uint64_t)data[5] << 40;
++        /* fall through */
++    case 5:
++        h ^= (uint64_t)data[4] << 32;
++        /* fall through */
++    case 4:
++        h ^= data[3] << 24;
++        /* fall through */
++    case 3:
++        h ^= data[2] << 16;
++        /* fall through */
++    case 2:
++        h ^= data[1] << 8;
++        /* fall through */
++    case 1:
++        h ^= data[0];
++        h *= 0xc6a4a7935bd1e995ull;
++    }
++
++    h ^= h >> 47;
++    h *= 0xc6a4a7935bd1e995ull;
++    h ^= h >> 47;
++
++    return h;
++}
+diff -r -N -u20 a/src/core/ngx_murmurhash.h b/src/core/ngx_murmurhash.h
+--- a/src/core/ngx_murmurhash.h	2017-05-30 22:55:24.000000000 +0800
++++ b/src/core/ngx_murmurhash.h	2017-08-22 18:52:57.803008000 +0800
+@@ -1,19 +1,21 @@
+ 
+ /*
+  * Copyright (C) Igor Sysoev
+  * Copyright (C) Nginx, Inc.
+  */
+ 
+ 
+ #ifndef _NGX_MURMURHASH_H_INCLUDED_
+ #define _NGX_MURMURHASH_H_INCLUDED_
+ 
+ 
+ #include <ngx_config.h>
+ #include <ngx_core.h>
+ 
+ 
+ uint32_t ngx_murmur_hash2(u_char *data, size_t len);
+ 
++uint64_t ngx_murmur_hash2_64(u_char *data, size_t len, uint64_t seed);
++
+ 
+ #endif /* _NGX_MURMURHASH_H_INCLUDED_ */
+diff -r -N -u20 a/src/event/ngx_event_openssl.c b/src/event/ngx_event_openssl.c
+--- a/src/event/ngx_event_openssl.c	2017-05-30 22:55:24.000000000 +0800
++++ b/src/event/ngx_event_openssl.c	2017-08-22 18:52:39.479008000 +0800
+@@ -1156,40 +1156,41 @@
+ #endif
+ #endif
+ #endif
+ 
+     return NGX_OK;
+ }
+ 
+ 
+ ngx_int_t
+ ngx_ssl_create_connection(ngx_ssl_t *ssl, ngx_connection_t *c, ngx_uint_t flags)
+ {
+     ngx_ssl_connection_t  *sc;
+ 
+     sc = ngx_pcalloc(c->pool, sizeof(ngx_ssl_connection_t));
+     if (sc == NULL) {
+         return NGX_ERROR;
+     }
+ 
+     sc->buffer = ((flags & NGX_SSL_BUFFER) != 0);
+     sc->buffer_size = ssl->buffer_size;
++    sc->dyn_rec = ssl->dyn_rec;
+ 
+     sc->session_ctx = ssl->ctx;
+ 
+     sc->connection = SSL_new(ssl->ctx);
+ 
+     if (sc->connection == NULL) {
+         ngx_ssl_error(NGX_LOG_ALERT, c->log, 0, "SSL_new() failed");
+         return NGX_ERROR;
+     }
+ 
+     if (SSL_set_fd(sc->connection, c->fd) == 0) {
+         ngx_ssl_error(NGX_LOG_ALERT, c->log, 0, "SSL_set_fd() failed");
+         return NGX_ERROR;
+     }
+ 
+     if (flags & NGX_SSL_CLIENT) {
+         SSL_set_connect_state(sc->connection);
+ 
+     } else {
+         SSL_set_accept_state(sc->connection);
+@@ -1694,40 +1695,75 @@
+ 
+         c->ssl->buf = buf;
+     }
+ 
+     if (buf->start == NULL) {
+         buf->start = ngx_palloc(c->pool, c->ssl->buffer_size);
+         if (buf->start == NULL) {
+             return NGX_CHAIN_ERROR;
+         }
+ 
+         buf->pos = buf->start;
+         buf->last = buf->start;
+         buf->end = buf->start + c->ssl->buffer_size;
+     }
+ 
+     send = buf->last - buf->pos;
+     flush = (in == NULL) ? 1 : buf->flush;
+ 
+     for ( ;; ) {
+ 
++        /* Dynamic record resizing:
++           We want the initial records to fit into one TCP segment
++           so we don't get TCP HoL blocking due to TCP Slow Start.
++           A connection always starts with small records, but after
++           a given amount of records sent, we make the records larger
++           to reduce header overhead.
++           After a connection has idled for a given timeout, begin
++           the process from the start. The actual parameters are
++           configurable. If dyn_rec_timeout is 0, we assume dyn_rec is off. */
++
++        if (c->ssl->dyn_rec.timeout > 0 ) {
++
++            if (ngx_current_msec - c->ssl->dyn_rec_last_write >
++                c->ssl->dyn_rec.timeout)
++            {
++                buf->end = buf->start + c->ssl->dyn_rec.size_lo;
++                c->ssl->dyn_rec_records_sent = 0;
++
++            } else {
++                if (c->ssl->dyn_rec_records_sent >
++                    c->ssl->dyn_rec.threshold * 2)
++                {
++                    buf->end = buf->start + c->ssl->buffer_size;
++
++                } else if (c->ssl->dyn_rec_records_sent >
++                           c->ssl->dyn_rec.threshold)
++                {
++                    buf->end = buf->start + c->ssl->dyn_rec.size_hi;
++
++                } else {
++                    buf->end = buf->start + c->ssl->dyn_rec.size_lo;
++                }
++            }
++        }
++
+         while (in && buf->last < buf->end && send < limit) {
+             if (in->buf->last_buf || in->buf->flush) {
+                 flush = 1;
+             }
+ 
+             if (ngx_buf_special(in->buf)) {
+                 in = in->next;
+                 continue;
+             }
+ 
+             size = in->buf->last - in->buf->pos;
+ 
+             if (size > buf->end - buf->last) {
+                 size = buf->end - buf->last;
+             }
+ 
+             if (send + size > limit) {
+                 size = (ssize_t) (limit - send);
+             }
+ 
+@@ -1795,40 +1831,43 @@
+     return in;
+ }
+ 
+ 
+ ssize_t
+ ngx_ssl_write(ngx_connection_t *c, u_char *data, size_t size)
+ {
+     int        n, sslerr;
+     ngx_err_t  err;
+ 
+     ngx_ssl_clear_error(c->log);
+ 
+     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, c->log, 0, "SSL to write: %uz", size);
+ 
+     n = SSL_write(c->ssl->connection, data, size);
+ 
+     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, c->log, 0, "SSL_write: %d", n);
+ 
+     if (n > 0) {
+ 
++        c->ssl->dyn_rec_records_sent++;
++        c->ssl->dyn_rec_last_write = ngx_current_msec;
++
+         if (c->ssl->saved_read_handler) {
+ 
+             c->read->handler = c->ssl->saved_read_handler;
+             c->ssl->saved_read_handler = NULL;
+             c->read->ready = 1;
+ 
+             if (ngx_handle_read_event(c->read, 0) != NGX_OK) {
+                 return NGX_ERROR;
+             }
+ 
+             ngx_post_event(c->read, &ngx_posted_events);
+         }
+ 
+         c->sent += n;
+ 
+         return n;
+     }
+ 
+     sslerr = SSL_get_error(c->ssl->connection, n);
+ 
+diff -r -N -u20 a/src/event/ngx_event_openssl.h b/src/event/ngx_event_openssl.h
+--- a/src/event/ngx_event_openssl.h	2017-05-30 22:55:24.000000000 +0800
++++ b/src/event/ngx_event_openssl.h	2017-08-22 18:52:39.479008000 +0800
+@@ -42,76 +42,89 @@
+ #if (OPENSSL_VERSION_NUMBER >= 0x10100001L)
+ 
+ #define ngx_ssl_version()       OpenSSL_version(OPENSSL_VERSION)
+ 
+ #else
+ 
+ #define ngx_ssl_version()       SSLeay_version(SSLEAY_VERSION)
+ 
+ #endif
+ 
+ 
+ #define ngx_ssl_session_t       SSL_SESSION
+ #define ngx_ssl_conn_t          SSL
+ 
+ 
+ #if (OPENSSL_VERSION_NUMBER < 0x10002000L)
+ #define SSL_is_server(s)        (s)->server
+ #endif
+ 
+ 
++typedef struct {
++    ngx_msec_t                  timeout;
++    ngx_uint_t                  threshold;
++    size_t                      size_lo;
++    size_t                      size_hi;
++} ngx_ssl_dyn_rec_t;
++
++
+ struct ngx_ssl_s {
+     SSL_CTX                    *ctx;
+     ngx_log_t                  *log;
+     size_t                      buffer_size;
++    ngx_ssl_dyn_rec_t           dyn_rec;
+ };
+ 
+ 
+ struct ngx_ssl_connection_s {
+     ngx_ssl_conn_t             *connection;
+     SSL_CTX                    *session_ctx;
+ 
+     ngx_int_t                   last;
+     ngx_buf_t                  *buf;
+     size_t                      buffer_size;
+ 
+     ngx_connection_handler_pt   handler;
+ 
+     ngx_event_handler_pt        saved_read_handler;
+     ngx_event_handler_pt        saved_write_handler;
+ 
+     unsigned                    handshaked:1;
+     unsigned                    renegotiation:1;
+     unsigned                    buffer:1;
+     unsigned                    no_wait_shutdown:1;
+     unsigned                    no_send_shutdown:1;
+     unsigned                    handshake_buffer_set:1;
++
++    ngx_ssl_dyn_rec_t           dyn_rec;
++    ngx_msec_t                  dyn_rec_last_write;
++    ngx_uint_t                  dyn_rec_records_sent;
+ };
+ 
+ 
+ #define NGX_SSL_NO_SCACHE            -2
+ #define NGX_SSL_NONE_SCACHE          -3
+ #define NGX_SSL_NO_BUILTIN_SCACHE    -4
+ #define NGX_SSL_DFLT_BUILTIN_SCACHE  -5
+ 
+ 
+-#define NGX_SSL_MAX_SESSION_SIZE  4096
++#define NGX_SSL_MAX_SESSION_SIZE  16384
+ 
+ typedef struct ngx_ssl_sess_id_s  ngx_ssl_sess_id_t;
+ 
+ struct ngx_ssl_sess_id_s {
+     ngx_rbtree_node_t           node;
+     u_char                     *id;
+     size_t                      len;
+     u_char                     *session;
+     ngx_queue_t                 queue;
+     time_t                      expire;
+ #if (NGX_PTR_SIZE == 8)
+     void                       *stub;
+     u_char                      sess_id[32];
+ #endif
+ };
+ 
+ 
+ typedef struct {
+     ngx_rbtree_t                session_rbtree;
+     ngx_rbtree_node_t           sentinel;
+diff -r -N -u20 a/src/http/modules/ngx_http_ssl_module.c b/src/http/modules/ngx_http_ssl_module.c
+--- a/src/http/modules/ngx_http_ssl_module.c	2017-05-30 22:55:24.000000000 +0800
++++ b/src/http/modules/ngx_http_ssl_module.c	2017-08-22 18:53:30.303008000 +0800
+@@ -217,40 +217,75 @@
+       NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_TAKE1,
+       ngx_conf_set_str_slot,
+       NGX_HTTP_SRV_CONF_OFFSET,
+       offsetof(ngx_http_ssl_srv_conf_t, stapling_file),
+       NULL },
+ 
+     { ngx_string("ssl_stapling_responder"),
+       NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_TAKE1,
+       ngx_conf_set_str_slot,
+       NGX_HTTP_SRV_CONF_OFFSET,
+       offsetof(ngx_http_ssl_srv_conf_t, stapling_responder),
+       NULL },
+ 
+     { ngx_string("ssl_stapling_verify"),
+       NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_FLAG,
+       ngx_conf_set_flag_slot,
+       NGX_HTTP_SRV_CONF_OFFSET,
+       offsetof(ngx_http_ssl_srv_conf_t, stapling_verify),
+       NULL },
+ 
++    { ngx_string("ssl_dyn_rec_enable"),
++      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_FLAG,
++      ngx_conf_set_flag_slot,
++      NGX_HTTP_SRV_CONF_OFFSET,
++      offsetof(ngx_http_ssl_srv_conf_t, dyn_rec_enable),
++      NULL },
++
++    { ngx_string("ssl_dyn_rec_timeout"),
++      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_FLAG,
++      ngx_conf_set_msec_slot,
++      NGX_HTTP_SRV_CONF_OFFSET,
++      offsetof(ngx_http_ssl_srv_conf_t, dyn_rec_timeout),
++      NULL },
++
++    { ngx_string("ssl_dyn_rec_size_lo"),
++      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_FLAG,
++      ngx_conf_set_size_slot,
++      NGX_HTTP_SRV_CONF_OFFSET,
++      offsetof(ngx_http_ssl_srv_conf_t, dyn_rec_size_lo),
++      NULL },
++
++    { ngx_string("ssl_dyn_rec_size_hi"),
++      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_FLAG,
++      ngx_conf_set_size_slot,
++      NGX_HTTP_SRV_CONF_OFFSET,
++      offsetof(ngx_http_ssl_srv_conf_t, dyn_rec_size_hi),
++      NULL },
++
++    { ngx_string("ssl_dyn_rec_threshold"),
++      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_FLAG,
++      ngx_conf_set_num_slot,
++      NGX_HTTP_SRV_CONF_OFFSET,
++      offsetof(ngx_http_ssl_srv_conf_t, dyn_rec_threshold),
++      NULL },
++
+       ngx_null_command
+ };
+ 
+ 
+ static ngx_http_module_t  ngx_http_ssl_module_ctx = {
+     ngx_http_ssl_add_variables,            /* preconfiguration */
+     ngx_http_ssl_init,                     /* postconfiguration */
+ 
+     NULL,                                  /* create main configuration */
+     NULL,                                  /* init main configuration */
+ 
+     ngx_http_ssl_create_srv_conf,          /* create server configuration */
+     ngx_http_ssl_merge_srv_conf,           /* merge server configuration */
+ 
+     NULL,                                  /* create location configuration */
+     NULL                                   /* merge location configuration */
+ };
+ 
+ 
+ ngx_module_t  ngx_http_ssl_module = {
+@@ -331,114 +366,159 @@
+ 
+     { ngx_null_string, NULL, NULL, 0, 0, 0 }
+ };
+ 
+ 
+ static ngx_str_t ngx_http_ssl_sess_id_ctx = ngx_string("HTTP");
+ 
+ 
+ #ifdef TLSEXT_TYPE_application_layer_protocol_negotiation
+ 
+ static int
+ ngx_http_ssl_alpn_select(ngx_ssl_conn_t *ssl_conn, const unsigned char **out,
+     unsigned char *outlen, const unsigned char *in, unsigned int inlen,
+     void *arg)
+ {
+     unsigned int            srvlen;
+     unsigned char          *srv;
+ #if (NGX_DEBUG)
+     unsigned int            i;
+ #endif
+-#if (NGX_HTTP_V2)
++#if (NGX_HTTP_V2 || NGX_HTTP_SPDY)
+     ngx_http_connection_t  *hc;
+ #endif
+-#if (NGX_HTTP_V2 || NGX_DEBUG)
++#if (NGX_HTTP_V2 || NGX_HTTP_SPDY || NGX_DEBUG)
+     ngx_connection_t       *c;
+ 
+     c = ngx_ssl_get_connection(ssl_conn);
+ #endif
+ 
+ #if (NGX_DEBUG)
+     for (i = 0; i < inlen; i += in[i] + 1) {
+         ngx_log_debug2(NGX_LOG_DEBUG_HTTP, c->log, 0,
+                        "SSL ALPN supported by client: %*s",
+                        (size_t) in[i], &in[i + 1]);
+     }
+ #endif
+ 
+-#if (NGX_HTTP_V2)
++#if (NGX_HTTP_V2 || NGX_HTTP_SPDY)
+     hc = c->data;
++#endif
+ 
++#if (NGX_HTTP_V2 && NGX_HTTP_SPDY)
++    if (hc->addr_conf->http2 && hc->addr_conf->spdy) {
++        srv = (unsigned char *) NGX_HTTP_V2_ALPN_ADVERTISE
++                                NGX_SPDY_NPN_ADVERTISE NGX_HTTP_NPN_ADVERTISE;
++        srvlen = sizeof(NGX_HTTP_V2_ALPN_ADVERTISE NGX_SPDY_NPN_ADVERTISE
++                        NGX_HTTP_NPN_ADVERTISE) - 1;
++
++    } else
++#endif
++#if (NGX_HTTP_V2)
+     if (hc->addr_conf->http2) {
+         srv =
+            (unsigned char *) NGX_HTTP_V2_ALPN_ADVERTISE NGX_HTTP_NPN_ADVERTISE;
+         srvlen = sizeof(NGX_HTTP_V2_ALPN_ADVERTISE NGX_HTTP_NPN_ADVERTISE) - 1;
+ 
+     } else
+ #endif
++#if (NGX_HTTP_SPDY)
++    if (hc->addr_conf->spdy) {
++        srv = (unsigned char *) NGX_SPDY_NPN_ADVERTISE NGX_HTTP_NPN_ADVERTISE;
++        srvlen = sizeof(NGX_SPDY_NPN_ADVERTISE NGX_HTTP_NPN_ADVERTISE) - 1;
++
++    } else
++#endif
+     {
+         srv = (unsigned char *) NGX_HTTP_NPN_ADVERTISE;
+         srvlen = sizeof(NGX_HTTP_NPN_ADVERTISE) - 1;
+     }
+ 
+     if (SSL_select_next_proto((unsigned char **) out, outlen, srv, srvlen,
+                               in, inlen)
+         != OPENSSL_NPN_NEGOTIATED)
+     {
+         return SSL_TLSEXT_ERR_NOACK;
+     }
+ 
+     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, c->log, 0,
+                    "SSL ALPN selected: %*s", (size_t) *outlen, *out);
+ 
+     return SSL_TLSEXT_ERR_OK;
+ }
+ 
+ #endif
+ 
+ 
+ #ifdef TLSEXT_TYPE_next_proto_neg
+ 
+ static int
+ ngx_http_ssl_npn_advertised(ngx_ssl_conn_t *ssl_conn,
+     const unsigned char **out, unsigned int *outlen, void *arg)
+ {
+-#if (NGX_HTTP_V2 || NGX_DEBUG)
++#if (NGX_HTTP_V2 || NGX_HTTP_SPDY || NGX_DEBUG)
+     ngx_connection_t  *c;
+ 
+     c = ngx_ssl_get_connection(ssl_conn);
+     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, c->log, 0, "SSL NPN advertised");
+ #endif
+ 
+-#if (NGX_HTTP_V2)
++#if (NGX_HTTP_V2 || NGX_HTTP_SPDY)
+     {
+     ngx_http_connection_t  *hc;
+ 
+     hc = c->data;
++#endif
+ 
++#if (NGX_HTTP_V2 && NGX_HTTP_SPDY)
++    if (hc->addr_conf->http2 && hc->addr_conf->spdy) {
++        *out = (unsigned char *) NGX_HTTP_V2_NPN_ADVERTISE
++                                 NGX_SPDY_NPN_ADVERTISE
++                                 NGX_HTTP_NPN_ADVERTISE;
++        *outlen = sizeof(NGX_HTTP_V2_NPN_ADVERTISE NGX_SPDY_NPN_ADVERTISE
++                         NGX_HTTP_NPN_ADVERTISE) - 1;
++
++        return SSL_TLSEXT_ERR_OK;
++    } else
++#endif
++#if (NGX_HTTP_V2)
+     if (hc->addr_conf->http2) {
+         *out =
+             (unsigned char *) NGX_HTTP_V2_NPN_ADVERTISE NGX_HTTP_NPN_ADVERTISE;
+         *outlen = sizeof(NGX_HTTP_V2_NPN_ADVERTISE NGX_HTTP_NPN_ADVERTISE) - 1;
+ 
+         return SSL_TLSEXT_ERR_OK;
+     }
++#endif
++#if (NGX_HTTP_V2 && NGX_HTTP_SPDY)
++    else
++#endif
++#if (NGX_HTTP_SPDY)
++    if (hc->addr_conf->spdy) {
++        *out = (unsigned char *) NGX_SPDY_NPN_ADVERTISE NGX_HTTP_NPN_ADVERTISE;
++        *outlen = sizeof(NGX_SPDY_NPN_ADVERTISE NGX_HTTP_NPN_ADVERTISE) - 1;
++
++        return SSL_TLSEXT_ERR_OK;
++    }
++#endif
++
++#if (NGX_HTTP_V2 || NGX_HTTP_SPDY)
+     }
+ #endif
+ 
+     *out = (unsigned char *) NGX_HTTP_NPN_ADVERTISE;
+     *outlen = sizeof(NGX_HTTP_NPN_ADVERTISE) - 1;
+ 
+     return SSL_TLSEXT_ERR_OK;
+ }
+ 
+ #endif
+ 
+ 
+ static ngx_int_t
+ ngx_http_ssl_static_variable(ngx_http_request_t *r,
+     ngx_http_variable_value_t *v, uintptr_t data)
+ {
+     ngx_ssl_variable_handler_pt  handler = (ngx_ssl_variable_handler_pt) data;
+ 
+     size_t     len;
+     ngx_str_t  s;
+@@ -538,40 +618,45 @@
+      *     sscf->ciphers = { 0, NULL };
+      *     sscf->shm_zone = NULL;
+      *     sscf->stapling_file = { 0, NULL };
+      *     sscf->stapling_responder = { 0, NULL };
+      */
+ 
+     sscf->enable = NGX_CONF_UNSET;
+     sscf->prefer_server_ciphers = NGX_CONF_UNSET;
+     sscf->buffer_size = NGX_CONF_UNSET_SIZE;
+     sscf->verify = NGX_CONF_UNSET_UINT;
+     sscf->verify_depth = NGX_CONF_UNSET_UINT;
+     sscf->certificates = NGX_CONF_UNSET_PTR;
+     sscf->certificate_keys = NGX_CONF_UNSET_PTR;
+     sscf->passwords = NGX_CONF_UNSET_PTR;
+     sscf->builtin_session_cache = NGX_CONF_UNSET;
+     sscf->session_timeout = NGX_CONF_UNSET;
+     sscf->session_tickets = NGX_CONF_UNSET;
+     sscf->session_ticket_keys = NGX_CONF_UNSET_PTR;
+     sscf->stapling = NGX_CONF_UNSET;
+     sscf->stapling_verify = NGX_CONF_UNSET;
++    sscf->dyn_rec_enable = NGX_CONF_UNSET;
++    sscf->dyn_rec_timeout = NGX_CONF_UNSET_MSEC;
++    sscf->dyn_rec_size_lo = NGX_CONF_UNSET_SIZE;
++    sscf->dyn_rec_size_hi = NGX_CONF_UNSET_SIZE;
++    sscf->dyn_rec_threshold = NGX_CONF_UNSET_UINT;
+ 
+     return sscf;
+ }
+ 
+ 
+ static char *
+ ngx_http_ssl_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child)
+ {
+     ngx_http_ssl_srv_conf_t *prev = parent;
+     ngx_http_ssl_srv_conf_t *conf = child;
+ 
+     ngx_pool_cleanup_t  *cln;
+ 
+     if (conf->enable == NGX_CONF_UNSET) {
+         if (prev->enable == NGX_CONF_UNSET) {
+             conf->enable = 0;
+ 
+         } else {
+             conf->enable = prev->enable;
+             conf->file = prev->file;
+@@ -603,40 +688,54 @@
+ 
+     ngx_conf_merge_str_value(conf->dhparam, prev->dhparam, "");
+ 
+     ngx_conf_merge_str_value(conf->client_certificate, prev->client_certificate,
+                          "");
+     ngx_conf_merge_str_value(conf->trusted_certificate,
+                          prev->trusted_certificate, "");
+     ngx_conf_merge_str_value(conf->crl, prev->crl, "");
+ 
+     ngx_conf_merge_str_value(conf->ecdh_curve, prev->ecdh_curve,
+                          NGX_DEFAULT_ECDH_CURVE);
+ 
+     ngx_conf_merge_str_value(conf->ciphers, prev->ciphers, NGX_DEFAULT_CIPHERS);
+ 
+     ngx_conf_merge_value(conf->stapling, prev->stapling, 0);
+     ngx_conf_merge_value(conf->stapling_verify, prev->stapling_verify, 0);
+     ngx_conf_merge_str_value(conf->stapling_file, prev->stapling_file, "");
+     ngx_conf_merge_str_value(conf->stapling_responder,
+                          prev->stapling_responder, "");
+ 
++    ngx_conf_merge_value(conf->dyn_rec_enable, prev->dyn_rec_enable, 0);
++    ngx_conf_merge_msec_value(conf->dyn_rec_timeout, prev->dyn_rec_timeout,
++                             1000);
++    /* Default sizes for the dynamic record sizes are defined to fit maximal
++       TLS + IPv6 overhead in a single TCP segment for lo and 3 segments for hi:
++       1369 = 1500 - 40 (IP) - 20 (TCP) - 10 (Time) - 61 (Max TLS overhead) */
++    ngx_conf_merge_size_value(conf->dyn_rec_size_lo, prev->dyn_rec_size_lo,
++                             1369);
++    /* 4229 = (1500 - 40 - 20 - 10) * 3  - 61 */
++    ngx_conf_merge_size_value(conf->dyn_rec_size_hi, prev->dyn_rec_size_hi,
++                             4229);
++    ngx_conf_merge_uint_value(conf->dyn_rec_threshold, prev->dyn_rec_threshold,
++                             40);
++
+     conf->ssl.log = cf->log;
+ 
+     if (conf->enable) {
+ 
+         if (conf->certificates == NULL) {
+             ngx_log_error(NGX_LOG_EMERG, cf->log, 0,
+                           "no \"ssl_certificate\" is defined for "
+                           "the \"ssl\" directive in %s:%ui",
+                           conf->file, conf->line);
+             return NGX_CONF_ERROR;
+         }
+ 
+         if (conf->certificate_keys == NULL) {
+             ngx_log_error(NGX_LOG_EMERG, cf->log, 0,
+                           "no \"ssl_certificate_key\" is defined for "
+                           "the \"ssl\" directive in %s:%ui",
+                           conf->file, conf->line);
+             return NGX_CONF_ERROR;
+         }
+ 
+@@ -783,40 +882,62 @@
+     ngx_conf_merge_ptr_value(conf->session_ticket_keys,
+                          prev->session_ticket_keys, NULL);
+ 
+     if (ngx_ssl_session_ticket_keys(cf, &conf->ssl, conf->session_ticket_keys)
+         != NGX_OK)
+     {
+         return NGX_CONF_ERROR;
+     }
+ 
+     if (conf->stapling) {
+ 
+         if (ngx_ssl_stapling(cf, &conf->ssl, &conf->stapling_file,
+                              &conf->stapling_responder, conf->stapling_verify)
+             != NGX_OK)
+         {
+             return NGX_CONF_ERROR;
+         }
+ 
+     }
+ 
++    if (conf->dyn_rec_enable) {
++        conf->ssl.dyn_rec.timeout = conf->dyn_rec_timeout;
++        conf->ssl.dyn_rec.threshold = conf->dyn_rec_threshold;
++
++        if (conf->buffer_size > conf->dyn_rec_size_lo) {
++            conf->ssl.dyn_rec.size_lo = conf->dyn_rec_size_lo;
++
++        } else {
++            conf->ssl.dyn_rec.size_lo = conf->buffer_size;
++        }
++
++        if (conf->buffer_size > conf->dyn_rec_size_hi) {
++            conf->ssl.dyn_rec.size_hi = conf->dyn_rec_size_hi;
++
++        } else {
++            conf->ssl.dyn_rec.size_hi = conf->buffer_size;
++        }
++
++    } else {
++        conf->ssl.dyn_rec.timeout = 0;
++    }
++
+     return NGX_CONF_OK;
+ }
+ 
+ 
+ static char *
+ ngx_http_ssl_enable(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+ {
+     ngx_http_ssl_srv_conf_t *sscf = conf;
+ 
+     char  *rv;
+ 
+     rv = ngx_conf_set_flag_slot(cf, cmd, conf);
+ 
+     if (rv != NGX_CONF_OK) {
+         return rv;
+     }
+ 
+     sscf->file = cf->conf_file->file.name.data;
+     sscf->line = cf->conf_file->line;
+ 
+diff -r -N -u20 a/src/http/modules/ngx_http_ssl_module.h b/src/http/modules/ngx_http_ssl_module.h
+--- a/src/http/modules/ngx_http_ssl_module.h	2017-05-30 22:55:24.000000000 +0800
++++ b/src/http/modules/ngx_http_ssl_module.h	2017-08-22 18:52:39.479008000 +0800
+@@ -40,27 +40,33 @@
+     ngx_str_t                       client_certificate;
+     ngx_str_t                       trusted_certificate;
+     ngx_str_t                       crl;
+ 
+     ngx_str_t                       ciphers;
+ 
+     ngx_array_t                    *passwords;
+ 
+     ngx_shm_zone_t                 *shm_zone;
+ 
+     ngx_flag_t                      session_tickets;
+     ngx_array_t                    *session_ticket_keys;
+ 
+     ngx_flag_t                      stapling;
+     ngx_flag_t                      stapling_verify;
+     ngx_str_t                       stapling_file;
+     ngx_str_t                       stapling_responder;
+ 
+     u_char                         *file;
+     ngx_uint_t                      line;
++
++    ngx_flag_t                      dyn_rec_enable;
++    ngx_msec_t                      dyn_rec_timeout;
++    size_t                          dyn_rec_size_lo;
++    size_t                          dyn_rec_size_hi;
++    ngx_uint_t                      dyn_rec_threshold;
+ } ngx_http_ssl_srv_conf_t;
+ 
+ 
+ extern ngx_module_t  ngx_http_ssl_module;
+ 
+ 
+ #endif /* _NGX_HTTP_SSL_H_INCLUDED_ */
+diff -r -N -u20 a/src/http/ngx_http.c b/src/http/ngx_http.c
+--- a/src/http/ngx_http.c	2017-05-30 22:55:24.000000000 +0800
++++ b/src/http/ngx_http.c	2017-08-22 18:53:30.303008000 +0800
+@@ -1185,109 +1185,118 @@
+     port->family = sa->sa_family;
+     port->port = p;
+     port->addrs.elts = NULL;
+ 
+     return ngx_http_add_address(cf, cscf, port, lsopt);
+ }
+ 
+ 
+ static ngx_int_t
+ ngx_http_add_addresses(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
+     ngx_http_conf_port_t *port, ngx_http_listen_opt_t *lsopt)
+ {
+     ngx_uint_t             i, default_server, proxy_protocol;
+     ngx_http_conf_addr_t  *addr;
+ #if (NGX_HTTP_SSL)
+     ngx_uint_t             ssl;
+ #endif
+ #if (NGX_HTTP_V2)
+     ngx_uint_t             http2;
+ #endif
++#if (NGX_HTTP_SPDY)
++    ngx_uint_t             spdy;
++#endif
+ 
+     /*
+      * we cannot compare whole sockaddr struct's as kernel
+      * may fill some fields in inherited sockaddr struct's
+      */
+ 
+     addr = port->addrs.elts;
+ 
+     for (i = 0; i < port->addrs.nelts; i++) {
+ 
+         if (ngx_cmp_sockaddr(&lsopt->sockaddr.sockaddr, lsopt->socklen,
+                              &addr[i].opt.sockaddr.sockaddr,
+                              addr[i].opt.socklen, 0)
+             != NGX_OK)
+         {
+             continue;
+         }
+ 
+         /* the address is already in the address list */
+ 
+         if (ngx_http_add_server(cf, cscf, &addr[i]) != NGX_OK) {
+             return NGX_ERROR;
+         }
+ 
+         /* preserve default_server bit during listen options overwriting */
+         default_server = addr[i].opt.default_server;
+ 
+         proxy_protocol = lsopt->proxy_protocol || addr[i].opt.proxy_protocol;
+ 
+ #if (NGX_HTTP_SSL)
+         ssl = lsopt->ssl || addr[i].opt.ssl;
+ #endif
+ #if (NGX_HTTP_V2)
+         http2 = lsopt->http2 || addr[i].opt.http2;
+ #endif
++#if (NGX_HTTP_SPDY)
++        spdy = lsopt->spdy || addr[i].opt.spdy;
++#endif
+ 
+         if (lsopt->set) {
+ 
+             if (addr[i].opt.set) {
+                 ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
+                         "duplicate listen options for %s", addr[i].opt.addr);
+                 return NGX_ERROR;
+             }
+ 
+             addr[i].opt = *lsopt;
+         }
+ 
+         /* check the duplicate "default" server for this address:port */
+ 
+         if (lsopt->default_server) {
+ 
+             if (default_server) {
+                 ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
+                         "a duplicate default server for %s", addr[i].opt.addr);
+                 return NGX_ERROR;
+             }
+ 
+             default_server = 1;
+             addr[i].default_server = cscf;
+         }
+ 
+         addr[i].opt.default_server = default_server;
+         addr[i].opt.proxy_protocol = proxy_protocol;
+ #if (NGX_HTTP_SSL)
+         addr[i].opt.ssl = ssl;
+ #endif
+ #if (NGX_HTTP_V2)
+         addr[i].opt.http2 = http2;
+ #endif
++#if (NGX_HTTP_SPDY)
++        addr[i].opt.spdy = spdy;
++#endif
+ 
+         return NGX_OK;
+     }
+ 
+     /* add the address to the addresses list that bound to this port */
+ 
+     return ngx_http_add_address(cf, cscf, port, lsopt);
+ }
+ 
+ 
+ /*
+  * add the server address, the server names and the server core module
+  * configurations to the port list
+  */
+ 
+ static ngx_int_t
+ ngx_http_add_address(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
+     ngx_http_conf_port_t *port, ngx_http_listen_opt_t *lsopt)
+ {
+     ngx_http_conf_addr_t  *addr;
+@@ -1297,40 +1306,52 @@
+                            sizeof(ngx_http_conf_addr_t))
+             != NGX_OK)
+         {
+             return NGX_ERROR;
+         }
+     }
+ 
+ #if (NGX_HTTP_V2 && NGX_HTTP_SSL                                              \
+      && !defined TLSEXT_TYPE_application_layer_protocol_negotiation           \
+      && !defined TLSEXT_TYPE_next_proto_neg)
+ 
+     if (lsopt->http2 && lsopt->ssl) {
+         ngx_conf_log_error(NGX_LOG_WARN, cf, 0,
+                            "nginx was built with OpenSSL that lacks ALPN "
+                            "and NPN support, HTTP/2 is not enabled for %s",
+                            lsopt->addr);
+     }
+ 
+ #endif
+ 
++#if (NGX_HTTP_SPDY && NGX_HTTP_SSL                                            \
++     && !defined TLSEXT_TYPE_application_layer_protocol_negotiation           \
++     && !defined TLSEXT_TYPE_next_proto_neg)
++    if (lsopt->spdy && lsopt->ssl) {
++        ngx_conf_log_error(NGX_LOG_WARN, cf, 0,
++                           "nginx was built with OpenSSL that lacks ALPN "
++                           "and NPN support, SPDY is not enabled for %s",
++                           lsopt->addr);
++    }
++
++#endif
++
+     addr = ngx_array_push(&port->addrs);
+     if (addr == NULL) {
+         return NGX_ERROR;
+     }
+ 
+     addr->opt = *lsopt;
+     addr->hash.buckets = NULL;
+     addr->hash.size = 0;
+     addr->wc_head = NULL;
+     addr->wc_tail = NULL;
+ #if (NGX_PCRE)
+     addr->nregex = 0;
+     addr->regex = NULL;
+ #endif
+     addr->default_server = cscf;
+     addr->servers.elts = NULL;
+ 
+     return ngx_http_add_server(cf, cscf, addr);
+ }
+ 
+@@ -1790,40 +1811,43 @@
+ 
+     hport->addrs = ngx_pcalloc(cf->pool,
+                                hport->naddrs * sizeof(ngx_http_in_addr_t));
+     if (hport->addrs == NULL) {
+         return NGX_ERROR;
+     }
+ 
+     addrs = hport->addrs;
+ 
+     for (i = 0; i < hport->naddrs; i++) {
+ 
+         sin = &addr[i].opt.sockaddr.sockaddr_in;
+         addrs[i].addr = sin->sin_addr.s_addr;
+         addrs[i].conf.default_server = addr[i].default_server;
+ #if (NGX_HTTP_SSL)
+         addrs[i].conf.ssl = addr[i].opt.ssl;
+ #endif
+ #if (NGX_HTTP_V2)
+         addrs[i].conf.http2 = addr[i].opt.http2;
+ #endif
++#if (NGX_HTTP_SPDY)
++        addrs[i].conf.spdy = addr[i].opt.spdy;
++#endif
+         addrs[i].conf.proxy_protocol = addr[i].opt.proxy_protocol;
+ 
+         if (addr[i].hash.buckets == NULL
+             && (addr[i].wc_head == NULL
+                 || addr[i].wc_head->hash.buckets == NULL)
+             && (addr[i].wc_tail == NULL
+                 || addr[i].wc_tail->hash.buckets == NULL)
+ #if (NGX_PCRE)
+             && addr[i].nregex == 0
+ #endif
+             )
+         {
+             continue;
+         }
+ 
+         vn = ngx_palloc(cf->pool, sizeof(ngx_http_virtual_names_t));
+         if (vn == NULL) {
+             return NGX_ERROR;
+         }
+ 
+@@ -1855,40 +1879,43 @@
+ 
+     hport->addrs = ngx_pcalloc(cf->pool,
+                                hport->naddrs * sizeof(ngx_http_in6_addr_t));
+     if (hport->addrs == NULL) {
+         return NGX_ERROR;
+     }
+ 
+     addrs6 = hport->addrs;
+ 
+     for (i = 0; i < hport->naddrs; i++) {
+ 
+         sin6 = &addr[i].opt.sockaddr.sockaddr_in6;
+         addrs6[i].addr6 = sin6->sin6_addr;
+         addrs6[i].conf.default_server = addr[i].default_server;
+ #if (NGX_HTTP_SSL)
+         addrs6[i].conf.ssl = addr[i].opt.ssl;
+ #endif
+ #if (NGX_HTTP_V2)
+         addrs6[i].conf.http2 = addr[i].opt.http2;
+ #endif
++#if (NGX_HTTP_SPDY)
++        addrs6[i].conf.spdy = addr[i].opt.spdy;
++#endif
+         addrs6[i].conf.proxy_protocol = addr[i].opt.proxy_protocol;
+ 
+         if (addr[i].hash.buckets == NULL
+             && (addr[i].wc_head == NULL
+                 || addr[i].wc_head->hash.buckets == NULL)
+             && (addr[i].wc_tail == NULL
+                 || addr[i].wc_tail->hash.buckets == NULL)
+ #if (NGX_PCRE)
+             && addr[i].nregex == 0
+ #endif
+             )
+         {
+             continue;
+         }
+ 
+         vn = ngx_palloc(cf->pool, sizeof(ngx_http_virtual_names_t));
+         if (vn == NULL) {
+             return NGX_ERROR;
+         }
+ 
+diff -r -N -u20 a/src/http/ngx_http_core_module.c b/src/http/ngx_http_core_module.c
+--- a/src/http/ngx_http_core_module.c	2017-05-30 22:55:24.000000000 +0800
++++ b/src/http/ngx_http_core_module.c	2017-08-22 18:53:30.303008000 +0800
+@@ -2141,40 +2141,47 @@
+ }
+ 
+ 
+ #if (NGX_HTTP_GZIP)
+ 
+ ngx_int_t
+ ngx_http_gzip_ok(ngx_http_request_t *r)
+ {
+     time_t                     date, expires;
+     ngx_uint_t                 p;
+     ngx_array_t               *cc;
+     ngx_table_elt_t           *e, *d, *ae;
+     ngx_http_core_loc_conf_t  *clcf;
+ 
+     r->gzip_tested = 1;
+ 
+     if (r != r->main) {
+         return NGX_DECLINED;
+     }
+ 
++#if (NGX_HTTP_SPDY)
++    if (r->spdy_stream) {
++        r->gzip_ok = 1;
++        return NGX_OK;
++    }
++#endif
++
+     ae = r->headers_in.accept_encoding;
+     if (ae == NULL) {
+         return NGX_DECLINED;
+     }
+ 
+     if (ae->value.len < sizeof("gzip") - 1) {
+         return NGX_DECLINED;
+     }
+ 
+     /*
+      * test first for the most common case "gzip,...":
+      *   MSIE:    "gzip, deflate"
+      *   Firefox: "gzip,deflate"
+      *   Chrome:  "gzip,deflate,sdch"
+      *   Safari:  "gzip, deflate"
+      *   Opera:   "gzip, deflate"
+      */
+ 
+     if (ngx_memcmp(ae->value.data, "gzip,", 5) != 0
+         && ngx_http_gzip_accept_encoding(&ae->value) != NGX_OK)
+@@ -2485,40 +2492,43 @@
+     }
+ 
+     cscf = ngx_http_get_module_srv_conf(r, ngx_http_core_module);
+     sr->main_conf = cscf->ctx->main_conf;
+     sr->srv_conf = cscf->ctx->srv_conf;
+     sr->loc_conf = cscf->ctx->loc_conf;
+ 
+     sr->pool = r->pool;
+ 
+     sr->headers_in = r->headers_in;
+ 
+     ngx_http_clear_content_length(sr);
+     ngx_http_clear_accept_ranges(sr);
+     ngx_http_clear_last_modified(sr);
+ 
+     sr->request_body = r->request_body;
+ 
+ #if (NGX_HTTP_V2)
+     sr->stream = r->stream;
+ #endif
++#if (NGX_HTTP_SPDY)
++    sr->spdy_stream = r->spdy_stream;
++#endif
+ 
+     sr->method = NGX_HTTP_GET;
+     sr->http_version = r->http_version;
+ 
+     sr->request_line = r->request_line;
+     sr->uri = *uri;
+ 
+     if (args) {
+         sr->args = *args;
+     }
+ 
+     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, c->log, 0,
+                    "http subrequest \"%V?%V\"", uri, &sr->args);
+ 
+     sr->subrequest_in_memory = (flags & NGX_HTTP_SUBREQUEST_IN_MEMORY) != 0;
+     sr->waited = (flags & NGX_HTTP_SUBREQUEST_WAITED) != 0;
+     sr->background = (flags & NGX_HTTP_SUBREQUEST_BACKGROUND) != 0;
+ 
+     sr->unparsed_uri = r->unparsed_uri;
+     sr->method_name = ngx_http_core_get_method;
+@@ -4166,45 +4176,49 @@
+             ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
+                                "the \"ssl\" parameter requires "
+                                "ngx_http_ssl_module");
+             return NGX_CONF_ERROR;
+ #endif
+         }
+ 
+         if (ngx_strcmp(value[n].data, "http2") == 0) {
+ #if (NGX_HTTP_V2)
+             lsopt.http2 = 1;
+             continue;
+ #else
+             ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
+                                "the \"http2\" parameter requires "
+                                "ngx_http_v2_module");
+             return NGX_CONF_ERROR;
+ #endif
+         }
+ 
+         if (ngx_strcmp(value[n].data, "spdy") == 0) {
+-            ngx_conf_log_error(NGX_LOG_WARN, cf, 0,
+-                               "invalid parameter \"spdy\": "
+-                               "ngx_http_spdy_module was superseded "
+-                               "by ngx_http_v2_module");
++#if (NGX_HTTP_SPDY)
++            lsopt.spdy = 1;
+             continue;
++#else
++            ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
++                               "the \"spdy\" parameter requires "
++                               "ngx_http_spdy_module");
++            return NGX_CONF_ERROR;
++#endif
+         }
+ 
+         if (ngx_strncmp(value[n].data, "so_keepalive=", 13) == 0) {
+ 
+             if (ngx_strcmp(&value[n].data[13], "on") == 0) {
+                 lsopt.so_keepalive = 1;
+ 
+             } else if (ngx_strcmp(&value[n].data[13], "off") == 0) {
+                 lsopt.so_keepalive = 2;
+ 
+             } else {
+ 
+ #if (NGX_HAVE_KEEPALIVE_TUNABLE)
+                 u_char     *p, *end;
+                 ngx_str_t   s;
+ 
+                 end = value[n].data + value[n].len;
+                 s.data = value[n].data + 13;
+ 
+                 p = ngx_strlchr(s.data, end, ':');
+diff -r -N -u20 a/src/http/ngx_http_core_module.h b/src/http/ngx_http_core_module.h
+--- a/src/http/ngx_http_core_module.h	2017-05-30 22:55:24.000000000 +0800
++++ b/src/http/ngx_http_core_module.h	2017-08-22 18:53:30.303008000 +0800
+@@ -57,40 +57,43 @@
+ 
+ #define NGX_HTTP_SERVER_TOKENS_OFF      0
+ #define NGX_HTTP_SERVER_TOKENS_ON       1
+ #define NGX_HTTP_SERVER_TOKENS_BUILD    2
+ 
+ 
+ typedef struct ngx_http_location_tree_node_s  ngx_http_location_tree_node_t;
+ typedef struct ngx_http_core_loc_conf_s  ngx_http_core_loc_conf_t;
+ 
+ 
+ typedef struct {
+     ngx_sockaddr_t             sockaddr;
+     socklen_t                  socklen;
+ 
+     unsigned                   set:1;
+     unsigned                   default_server:1;
+     unsigned                   bind:1;
+     unsigned                   wildcard:1;
+     unsigned                   ssl:1;
+     unsigned                   http2:1;
++#if (NGX_HTTP_SPDY)
++    unsigned                   spdy:1;
++#endif
+ #if (NGX_HAVE_INET6)
+     unsigned                   ipv6only:1;
+ #endif
+     unsigned                   deferred_accept:1;
+     unsigned                   reuseport:1;
+     unsigned                   so_keepalive:2;
+     unsigned                   proxy_protocol:1;
+ 
+     int                        backlog;
+     int                        rcvbuf;
+     int                        sndbuf;
+ #if (NGX_HAVE_SETFIB)
+     int                        setfib;
+ #endif
+ #if (NGX_HAVE_TCP_FASTOPEN)
+     int                        fastopen;
+ #endif
+ #if (NGX_HAVE_KEEPALIVE_TUNABLE)
+     int                        tcp_keepidle;
+     int                        tcp_keepintvl;
+@@ -219,40 +222,43 @@
+     ngx_str_t                  name;
+ } ngx_http_server_name_t;
+ 
+ 
+ typedef struct {
+     ngx_hash_combined_t        names;
+ 
+     ngx_uint_t                 nregex;
+     ngx_http_server_name_t    *regex;
+ } ngx_http_virtual_names_t;
+ 
+ 
+ struct ngx_http_addr_conf_s {
+     /* the default server configuration for this address:port */
+     ngx_http_core_srv_conf_t  *default_server;
+ 
+     ngx_http_virtual_names_t  *virtual_names;
+ 
+     unsigned                   ssl:1;
+     unsigned                   http2:1;
++#if (NGX_HTTP_SPDY)
++    unsigned                   spdy:1;
++#endif
+     unsigned                   proxy_protocol:1;
+ };
+ 
+ 
+ typedef struct {
+     in_addr_t                  addr;
+     ngx_http_addr_conf_t       conf;
+ } ngx_http_in_addr_t;
+ 
+ 
+ #if (NGX_HAVE_INET6)
+ 
+ typedef struct {
+     struct in6_addr            addr6;
+     ngx_http_addr_conf_t       conf;
+ } ngx_http_in6_addr_t;
+ 
+ #endif
+ 
+ 
+diff -r -N -u20 a/src/http/ngx_http.h b/src/http/ngx_http.h
+--- a/src/http/ngx_http.h	2017-05-30 22:55:24.000000000 +0800
++++ b/src/http/ngx_http.h	2017-08-22 18:53:30.303008000 +0800
+@@ -2,59 +2,66 @@
+ /*
+  * Copyright (C) Igor Sysoev
+  * Copyright (C) Nginx, Inc.
+  */
+ 
+ 
+ #ifndef _NGX_HTTP_H_INCLUDED_
+ #define _NGX_HTTP_H_INCLUDED_
+ 
+ 
+ #include <ngx_config.h>
+ #include <ngx_core.h>
+ 
+ 
+ typedef struct ngx_http_request_s     ngx_http_request_t;
+ typedef struct ngx_http_upstream_s    ngx_http_upstream_t;
+ typedef struct ngx_http_cache_s       ngx_http_cache_t;
+ typedef struct ngx_http_file_cache_s  ngx_http_file_cache_t;
+ typedef struct ngx_http_log_ctx_s     ngx_http_log_ctx_t;
+ typedef struct ngx_http_chunked_s     ngx_http_chunked_t;
++#if (NGX_HTTP_SPDY)
++typedef struct ngx_http_spdy_stream_s  ngx_http_spdy_stream_t;
++#endif
+ typedef struct ngx_http_v2_stream_s   ngx_http_v2_stream_t;
+ 
+ typedef ngx_int_t (*ngx_http_header_handler_pt)(ngx_http_request_t *r,
+     ngx_table_elt_t *h, ngx_uint_t offset);
+ typedef u_char *(*ngx_http_log_handler_pt)(ngx_http_request_t *r,
+     ngx_http_request_t *sr, u_char *buf, size_t len);
+ 
+ 
+ #include <ngx_http_variables.h>
+ #include <ngx_http_config.h>
+ #include <ngx_http_request.h>
+ #include <ngx_http_script.h>
+ #include <ngx_http_upstream.h>
+ #include <ngx_http_upstream_round_robin.h>
+ #include <ngx_http_core_module.h>
+ 
++
+ #if (NGX_HTTP_V2)
+ #include <ngx_http_v2.h>
+ #endif
++#if (NGX_HTTP_SPDY)
++#include <ngx_http_spdy.h>
++#endif
+ #if (NGX_HTTP_CACHE)
+ #include <ngx_http_cache.h>
+ #endif
+ #if (NGX_HTTP_SSI)
+ #include <ngx_http_ssi_filter_module.h>
+ #endif
+ #if (NGX_HTTP_SSL)
+ #include <ngx_http_ssl_module.h>
+ #endif
+ 
+ 
+ struct ngx_http_log_ctx_s {
+     ngx_connection_t    *connection;
+     ngx_http_request_t  *request;
+     ngx_http_request_t  *current_request;
+ };
+ 
+ 
+ struct ngx_http_chunked_s {
+     ngx_uint_t           state;
+diff -r -N -u20 a/src/http/ngx_http_request_body.c b/src/http/ngx_http_request_body.c
+--- a/src/http/ngx_http_request_body.c	2017-05-30 22:55:24.000000000 +0800
++++ b/src/http/ngx_http_request_body.c	2017-08-22 18:53:30.303008000 +0800
+@@ -67,40 +67,46 @@
+      *     rb->chunked = NULL;
+      */
+ 
+     rb->rest = -1;
+     rb->post_handler = post_handler;
+ 
+     r->request_body = rb;
+ 
+     if (r->headers_in.content_length_n < 0 && !r->headers_in.chunked) {
+         r->request_body_no_buffering = 0;
+         post_handler(r);
+         return NGX_OK;
+     }
+ 
+ #if (NGX_HTTP_V2)
+     if (r->stream) {
+         rc = ngx_http_v2_read_request_body(r);
+         goto done;
+     }
+ #endif
++#if (NGX_HTTP_SPDY)
++    if (r->spdy_stream) {
++        rc = ngx_http_spdy_read_request_body(r, post_handler);
++        goto done;
++    }
++#endif
+ 
+     preread = r->header_in->last - r->header_in->pos;
+ 
+     if (preread) {
+ 
+         /* there is the pre-read part of the request body */
+ 
+         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
+                        "http client request body preread %uz", preread);
+ 
+         out.buf = r->header_in;
+         out.next = NULL;
+ 
+         rc = ngx_http_request_body_filter(r, &out);
+ 
+         if (rc != NGX_OK) {
+             goto done;
+         }
+ 
+         r->request_length += preread - (r->header_in->last - r->header_in->pos);
+@@ -507,40 +513,46 @@
+ }
+ 
+ 
+ ngx_int_t
+ ngx_http_discard_request_body(ngx_http_request_t *r)
+ {
+     ssize_t       size;
+     ngx_int_t     rc;
+     ngx_event_t  *rev;
+ 
+     if (r != r->main || r->discard_body || r->request_body) {
+         return NGX_OK;
+     }
+ 
+ #if (NGX_HTTP_V2)
+     if (r->stream) {
+         r->stream->skip_data = 1;
+         return NGX_OK;
+     }
+ #endif
++#if (NGX_HTTP_SPDY)
++    if (r->spdy_stream) {
++        r->spdy_stream->skip_data = 1;
++        return NGX_OK;
++    }
++#endif
+ 
+     if (ngx_http_test_expect(r) != NGX_OK) {
+         return NGX_HTTP_INTERNAL_SERVER_ERROR;
+     }
+ 
+     rev = r->connection->read;
+ 
+     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, rev->log, 0, "http set discard body");
+ 
+     if (rev->timer_set) {
+         ngx_del_timer(rev);
+     }
+ 
+     if (r->headers_in.content_length_n <= 0 && !r->headers_in.chunked) {
+         return NGX_OK;
+     }
+ 
+     size = r->header_in->last - r->header_in->pos;
+ 
+     if (size || r->headers_in.chunked) {
+diff -r -N -u20 a/src/http/ngx_http_request.c b/src/http/ngx_http_request.c
+--- a/src/http/ngx_http_request.c	2017-05-30 22:55:24.000000000 +0800
++++ b/src/http/ngx_http_request.c	2017-08-22 18:53:30.303008000 +0800
+@@ -302,40 +302,45 @@
+     if (ctx == NULL) {
+         ngx_http_close_connection(c);
+         return;
+     }
+ 
+     ctx->connection = c;
+     ctx->request = NULL;
+     ctx->current_request = NULL;
+ 
+     c->log->connection = c->number;
+     c->log->handler = ngx_http_log_error;
+     c->log->data = ctx;
+     c->log->action = "waiting for request";
+ 
+     c->log_error = NGX_ERROR_INFO;
+ 
+     rev = c->read;
+     rev->handler = ngx_http_wait_request_handler;
+     c->write->handler = ngx_http_empty_handler;
+ 
++#if (NGX_HTTP_SPDY)
++    if (hc->addr_conf->spdy) {
++        rev->handler = ngx_http_spdy_init;
++    }
++#endif
+ #if (NGX_HTTP_V2)
+     if (hc->addr_conf->http2) {
+         rev->handler = ngx_http_v2_init;
+     }
+ #endif
+ 
+ #if (NGX_HTTP_SSL)
+     {
+     ngx_http_ssl_srv_conf_t  *sscf;
+ 
+     sscf = ngx_http_get_module_srv_conf(hc->conf_ctx, ngx_http_ssl_module);
+ 
+     if (sscf->enable || hc->addr_conf->ssl) {
+ 
+         c->log->action = "SSL handshaking";
+ 
+         if (hc->addr_conf->ssl && sscf->ssl.ctx == NULL) {
+             ngx_log_error(NGX_LOG_ERR, c->log, 0,
+                           "no \"ssl_certificate\" is defined "
+                           "in server listening on SSL port");
+@@ -796,40 +801,68 @@
+             SSL_get0_alpn_selected(c->ssl->connection, &data, &len);
+ 
+ #ifdef TLSEXT_TYPE_next_proto_neg
+             if (len == 0) {
+                 SSL_get0_next_proto_negotiated(c->ssl->connection, &data, &len);
+             }
+ #endif
+ 
+ #else /* TLSEXT_TYPE_next_proto_neg */
+             SSL_get0_next_proto_negotiated(c->ssl->connection, &data, &len);
+ #endif
+ 
+             if (len == 2 && data[0] == 'h' && data[1] == '2') {
+                 ngx_http_v2_init(c->read);
+                 return;
+             }
+         }
+         }
+ #endif
+ 
++#if (NGX_HTTP_SPDY                                                            \
++     && (defined TLSEXT_TYPE_application_layer_protocol_negotiation           \
++         || defined TLSEXT_TYPE_next_proto_neg))
++        {
++        unsigned int             len;
++        const unsigned char     *data;
++        static const ngx_str_t   spdy = ngx_string(NGX_SPDY_NPN_NEGOTIATED);
++
++#ifdef TLSEXT_TYPE_application_layer_protocol_negotiation
++        SSL_get0_alpn_selected(c->ssl->connection, &data, &len);
++
++#ifdef TLSEXT_TYPE_next_proto_neg
++        if (len == 0) {
++            SSL_get0_next_proto_negotiated(c->ssl->connection, &data, &len);
++        }
++#endif
++
++#else /* TLSEXT_TYPE_next_proto_neg */
++        SSL_get0_next_proto_negotiated(c->ssl->connection, &data, &len);
++#endif
++
++        if (len == spdy.len && ngx_strncmp(data, spdy.data, spdy.len) == 0) {
++            ngx_http_spdy_init(c->read);
++            return;
++        }
++        }
++#endif
++
+         c->log->action = "waiting for request";
+ 
+         c->read->handler = ngx_http_wait_request_handler;
+         /* STUB: epoll edge */ c->write->handler = ngx_http_empty_handler;
+ 
+         ngx_reusable_connection(c, 1);
+ 
+         ngx_http_wait_request_handler(c->read);
+ 
+         return;
+     }
+ 
+     if (c->read->timedout) {
+         ngx_log_error(NGX_LOG_INFO, c->log, NGX_ETIMEDOUT, "client timed out");
+     }
+ 
+     ngx_http_close_connection(c);
+ }
+ 
+ #ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
+@@ -2548,40 +2581,46 @@
+     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
+                    "http terminate handler count:%d", r->count);
+ 
+     r->count = 1;
+ 
+     ngx_http_close_request(r, 0);
+ }
+ 
+ 
+ static void
+ ngx_http_finalize_connection(ngx_http_request_t *r)
+ {
+     ngx_http_core_loc_conf_t  *clcf;
+ 
+ #if (NGX_HTTP_V2)
+     if (r->stream) {
+         ngx_http_close_request(r, 0);
+         return;
+     }
+ #endif
++#if (NGX_HTTP_SPDY)
++    if (r->spdy_stream) {
++        ngx_http_close_request(r, 0);
++        return;
++    }
++#endif
+ 
+     clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
+ 
+     if (r->main->count != 1) {
+ 
+         if (r->discard_body) {
+             r->read_event_handler = ngx_http_discarded_request_body_handler;
+             ngx_add_timer(r->connection->read, clcf->lingering_timeout);
+ 
+             if (r->lingering_time == 0) {
+                 r->lingering_time = ngx_time()
+                                       + (time_t) (clcf->lingering_time / 1000);
+             }
+         }
+ 
+         ngx_http_close_request(r, 0);
+         return;
+     }
+ 
+     r = r->main;
+@@ -2757,40 +2796,52 @@
+     ngx_event_t       *rev;
+     ngx_connection_t  *c;
+ 
+     c = r->connection;
+     rev = c->read;
+ 
+     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, c->log, 0, "http test reading");
+ 
+ #if (NGX_HTTP_V2)
+ 
+     if (r->stream) {
+         if (c->error) {
+             err = 0;
+             goto closed;
+         }
+ 
+         return;
+     }
+ 
+ #endif
++#if (NGX_HTTP_SPDY)
++
++    if (r->spdy_stream) {
++        if (c->error) {
++            err = 0;
++            goto closed;
++        }
++
++        return;
++    }
++
++#endif
+ 
+ #if (NGX_HAVE_KQUEUE)
+ 
+     if (ngx_event_flags & NGX_USE_KQUEUE_EVENT) {
+ 
+         if (!rev->pending_eof) {
+             return;
+         }
+ 
+         rev->eof = 1;
+         c->error = 1;
+         err = rev->kq_errno;
+ 
+         goto closed;
+     }
+ 
+ #endif
+ 
+ #if (NGX_HAVE_EPOLLRDHUP)
+ 
+@@ -3420,40 +3471,46 @@
+ 
+     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, c->log, 0,
+                    "http request count:%d blk:%d", r->count, r->blocked);
+ 
+     if (r->count == 0) {
+         ngx_log_error(NGX_LOG_ALERT, c->log, 0, "http request count is zero");
+     }
+ 
+     r->count--;
+ 
+     if (r->count || r->blocked) {
+         return;
+     }
+ 
+ #if (NGX_HTTP_V2)
+     if (r->stream) {
+         ngx_http_v2_close_stream(r->stream, rc);
+         return;
+     }
+ #endif
++#if (NGX_HTTP_SPDY)
++    if (r->spdy_stream) {
++        ngx_http_spdy_close_stream(r->spdy_stream, rc);
++        return;
++    }
++#endif
+ 
+     ngx_http_free_request(r, rc);
+     ngx_http_close_connection(c);
+ }
+ 
+ 
+ void
+ ngx_http_free_request(ngx_http_request_t *r, ngx_int_t rc)
+ {
+     ngx_log_t                 *log;
+     ngx_pool_t                *pool;
+     struct linger              linger;
+     ngx_http_cleanup_t        *cln;
+     ngx_http_log_ctx_t        *ctx;
+     ngx_http_core_loc_conf_t  *clcf;
+ 
+     log = r->connection->log;
+ 
+     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, log, 0, "http close request");
+ 
+diff -r -N -u20 a/src/http/ngx_http_request.h b/src/http/ngx_http_request.h
+--- a/src/http/ngx_http_request.h	2017-05-30 22:55:24.000000000 +0800
++++ b/src/http/ngx_http_request.h	2017-08-22 18:53:30.303008000 +0800
+@@ -411,40 +411,43 @@
+     ngx_str_t                         http_protocol;
+ 
+     ngx_chain_t                      *out;
+     ngx_http_request_t               *main;
+     ngx_http_request_t               *parent;
+     ngx_http_postponed_request_t     *postponed;
+     ngx_http_post_subrequest_t       *post_subrequest;
+     ngx_http_posted_request_t        *posted_requests;
+ 
+     ngx_int_t                         phase_handler;
+     ngx_http_handler_pt               content_handler;
+     ngx_uint_t                        access_code;
+ 
+     ngx_http_variable_value_t        *variables;
+ 
+ #if (NGX_PCRE)
+     ngx_uint_t                        ncaptures;
+     int                              *captures;
+     u_char                           *captures_data;
+ #endif
++#if (NGX_HTTP_SPDY)
++    ngx_http_spdy_stream_t           *spdy_stream;
++#endif
+ 
+     size_t                            limit_rate;
+     size_t                            limit_rate_after;
+ 
+     /* used to learn the Apache compatible response length without a header */
+     size_t                            header_size;
+ 
+     off_t                             request_length;
+ 
+     ngx_uint_t                        err_status;
+ 
+     ngx_http_connection_t            *http_connection;
+     ngx_http_v2_stream_t             *stream;
+ 
+     ngx_http_log_handler_pt           log_handler;
+ 
+     ngx_http_cleanup_t               *cleanup;
+ 
+     unsigned                          count:16;
+     unsigned                          subrequests:8;
+diff -r -N -u20 a/src/http/ngx_http_upstream.c b/src/http/ngx_http_upstream.c
+--- a/src/http/ngx_http_upstream.c	2017-05-30 22:55:24.000000000 +0800
++++ b/src/http/ngx_http_upstream.c	2017-08-22 18:53:30.307008000 +0800
+@@ -495,40 +495,46 @@
+     return NGX_OK;
+ }
+ 
+ 
+ void
+ ngx_http_upstream_init(ngx_http_request_t *r)
+ {
+     ngx_connection_t     *c;
+ 
+     c = r->connection;
+ 
+     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0,
+                    "http init upstream, client timer: %d", c->read->timer_set);
+ 
+ #if (NGX_HTTP_V2)
+     if (r->stream) {
+         ngx_http_upstream_init_request(r);
+         return;
+     }
+ #endif
++#if (NGX_HTTP_SPDY)
++    if (r->spdy_stream) {
++        ngx_http_upstream_init_request(r);
++        return;
++    }
++#endif
+ 
+     if (c->read->timer_set) {
+         ngx_del_timer(c->read);
+     }
+ 
+     if (ngx_event_flags & NGX_USE_CLEAR_EVENT) {
+ 
+         if (!c->write->active) {
+             if (ngx_add_event(c->write, NGX_WRITE_EVENT, NGX_CLEAR_EVENT)
+                 == NGX_ERROR)
+             {
+                 ngx_http_finalize_request(r, NGX_HTTP_INTERNAL_SERVER_ERROR);
+                 return;
+             }
+         }
+     }
+ 
+     ngx_http_upstream_init_request(r);
+ }
+ 
+@@ -1289,40 +1295,45 @@
+             if (ngx_del_event(ev, event, 0) != NGX_OK) {
+                 ngx_http_upstream_finalize_request(r, u,
+                                                NGX_HTTP_INTERNAL_SERVER_ERROR);
+                 return;
+             }
+         }
+ 
+         if (!u->cacheable) {
+             ngx_http_upstream_finalize_request(r, u,
+                                                NGX_HTTP_CLIENT_CLOSED_REQUEST);
+         }
+ 
+         return;
+     }
+ 
+ #if (NGX_HTTP_V2)
+     if (r->stream) {
+         return;
+     }
+ #endif
++#if (NGX_HTTP_SPDY)
++    if (r->spdy_stream) {
++        return;
++    }
++#endif
+ 
+ #if (NGX_HAVE_KQUEUE)
+ 
+     if (ngx_event_flags & NGX_USE_KQUEUE_EVENT) {
+ 
+         if (!ev->pending_eof) {
+             return;
+         }
+ 
+         ev->eof = 1;
+         c->error = 1;
+ 
+         if (ev->kq_errno) {
+             ev->error = 1;
+         }
+ 
+         if (!u->cacheable && u->peer.connection) {
+             ngx_log_error(NGX_LOG_INFO, ev->log, ev->kq_errno,
+                           "kevent() reported that client prematurely closed "
+                           "connection, so upstream connection is closed too");
+diff -r -N -u20 a/src/http/v2/ngx_http_v2.c b/src/http/v2/ngx_http_v2.c
+--- a/src/http/v2/ngx_http_v2.c	2017-05-30 22:55:24.000000000 +0800
++++ b/src/http/v2/ngx_http_v2.c	2017-08-22 18:52:57.803008000 +0800
+@@ -228,40 +228,42 @@
+             return;
+         }
+     }
+ 
+     h2c = ngx_pcalloc(c->pool, sizeof(ngx_http_v2_connection_t));
+     if (h2c == NULL) {
+         ngx_http_close_connection(c);
+         return;
+     }
+ 
+     h2c->connection = c;
+     h2c->http_connection = hc;
+ 
+     h2c->send_window = NGX_HTTP_V2_DEFAULT_WINDOW;
+     h2c->recv_window = NGX_HTTP_V2_MAX_WINDOW;
+ 
+     h2c->init_window = NGX_HTTP_V2_DEFAULT_WINDOW;
+ 
+     h2c->frame_size = NGX_HTTP_V2_DEFAULT_FRAME_SIZE;
+ 
++    h2c->max_hpack_table_size = NGX_HTTP_V2_DEFAULT_HPACK_TABLE_SIZE;
++
+     h2scf = ngx_http_get_module_srv_conf(hc->conf_ctx, ngx_http_v2_module);
+ 
+     h2c->pool = ngx_create_pool(h2scf->pool_size, h2c->connection->log);
+     if (h2c->pool == NULL) {
+         ngx_http_close_connection(c);
+         return;
+     }
+ 
+     cln = ngx_pool_cleanup_add(c->pool, 0);
+     if (cln == NULL) {
+         ngx_http_close_connection(c);
+         return;
+     }
+ 
+     cln->handler = ngx_http_v2_pool_cleanup;
+     cln->data = h2c;
+ 
+     h2c->streams_index = ngx_pcalloc(c->pool, ngx_http_v2_index_size(h2scf)
+                                               * sizeof(ngx_http_v2_node_t *));
+     if (h2c->streams_index == NULL) {
+@@ -1996,40 +1998,51 @@
+ 
+             h2c->init_window = value;
+             break;
+ 
+         case NGX_HTTP_V2_MAX_FRAME_SIZE_SETTING:
+ 
+             if (value > NGX_HTTP_V2_MAX_FRAME_SIZE
+                 || value < NGX_HTTP_V2_DEFAULT_FRAME_SIZE)
+             {
+                 ngx_log_error(NGX_LOG_INFO, h2c->connection->log, 0,
+                               "client sent SETTINGS frame with incorrect "
+                               "MAX_FRAME_SIZE value %ui", value);
+ 
+                 return ngx_http_v2_connection_error(h2c,
+                                                     NGX_HTTP_V2_PROTOCOL_ERROR);
+             }
+ 
+             h2c->frame_size = value;
+             break;
+ 
++        case NGX_HTTP_V2_HEADER_TABLE_SIZE_SETTING:
++
++            if (value > NGX_HTTP_V2_MAX_HPACK_TABLE_SIZE) {
++                h2c->max_hpack_table_size = NGX_HTTP_V2_MAX_HPACK_TABLE_SIZE;
++            } else {
++                h2c->max_hpack_table_size = value;
++            }
++
++            h2c->indicate_resize = 1;
++            break;
++
+         default:
+             break;
+         }
+ 
+         pos += NGX_HTTP_V2_SETTINGS_PARAM_SIZE;
+     }
+ 
+     return ngx_http_v2_state_complete(h2c, pos, end);
+ }
+ 
+ 
+ static u_char *
+ ngx_http_v2_state_push_promise(ngx_http_v2_connection_t *h2c, u_char *pos,
+     u_char *end)
+ {
+     ngx_log_error(NGX_LOG_INFO, h2c->connection->log, 0,
+                   "client sent PUSH_PROMISE frame");
+ 
+     return ngx_http_v2_connection_error(h2c, NGX_HTTP_V2_PROTOCOL_ERROR);
+ }
+diff -r -N -u20 a/src/http/v2/ngx_http_v2_filter_module.c b/src/http/v2/ngx_http_v2_filter_module.c
+--- a/src/http/v2/ngx_http_v2_filter_module.c	2017-05-30 22:55:24.000000000 +0800
++++ b/src/http/v2/ngx_http_v2_filter_module.c	2017-08-22 18:52:57.807008000 +0800
+@@ -8,70 +8,61 @@
+ #include <ngx_config.h>
+ #include <ngx_core.h>
+ #include <ngx_http.h>
+ #include <nginx.h>
+ #include <ngx_http_v2_module.h>
+ 
+ 
+ /*
+  * This returns precise number of octets for values in range 0..253
+  * and estimate number for the rest, but not smaller than required.
+  */
+ 
+ #define ngx_http_v2_integer_octets(v)  (1 + (v) / 127)
+ 
+ #define ngx_http_v2_literal_size(h)                                           \
+     (ngx_http_v2_integer_octets(sizeof(h) - 1) + sizeof(h) - 1)
+ 
+ #define ngx_http_v2_indexed(i)      (128 + (i))
+ #define ngx_http_v2_inc_indexed(i)  (64 + (i))
+ 
+-#define ngx_http_v2_write_name(dst, src, len, tmp)                            \
+-    ngx_http_v2_string_encode(dst, src, len, tmp, 1)
+-#define ngx_http_v2_write_value(dst, src, len, tmp)                           \
+-    ngx_http_v2_string_encode(dst, src, len, tmp, 0)
+-
+ #define NGX_HTTP_V2_ENCODE_RAW            0
+ #define NGX_HTTP_V2_ENCODE_HUFF           0x80
+ 
+ #define NGX_HTTP_V2_STATUS_INDEX          8
+ #define NGX_HTTP_V2_STATUS_200_INDEX      8
+ #define NGX_HTTP_V2_STATUS_204_INDEX      9
+ #define NGX_HTTP_V2_STATUS_206_INDEX      10
+ #define NGX_HTTP_V2_STATUS_304_INDEX      11
+ #define NGX_HTTP_V2_STATUS_400_INDEX      12
+ #define NGX_HTTP_V2_STATUS_404_INDEX      13
+ #define NGX_HTTP_V2_STATUS_500_INDEX      14
+ 
+ #define NGX_HTTP_V2_CONTENT_LENGTH_INDEX  28
+ #define NGX_HTTP_V2_CONTENT_TYPE_INDEX    31
+ #define NGX_HTTP_V2_DATE_INDEX            33
+ #define NGX_HTTP_V2_LAST_MODIFIED_INDEX   44
+ #define NGX_HTTP_V2_LOCATION_INDEX        46
+ #define NGX_HTTP_V2_SERVER_INDEX          54
+ #define NGX_HTTP_V2_VARY_INDEX            59
+ 
+ 
+-static u_char *ngx_http_v2_string_encode(u_char *dst, u_char *src, size_t len,
+-    u_char *tmp, ngx_uint_t lower);
+-static u_char *ngx_http_v2_write_int(u_char *pos, ngx_uint_t prefix,
+-    ngx_uint_t value);
+ static ngx_http_v2_out_frame_t *ngx_http_v2_create_headers_frame(
+     ngx_http_request_t *r, u_char *pos, u_char *end);
+ 
+ static ngx_chain_t *ngx_http_v2_send_chain(ngx_connection_t *fc,
+     ngx_chain_t *in, off_t limit);
+ 
+ static ngx_chain_t *ngx_http_v2_filter_get_shadow(
+     ngx_http_v2_stream_t *stream, ngx_buf_t *buf, off_t offset, off_t size);
+ static ngx_http_v2_out_frame_t *ngx_http_v2_filter_get_data_frame(
+     ngx_http_v2_stream_t *stream, size_t len, ngx_chain_t *first,
+     ngx_chain_t *last);
+ 
+ static ngx_inline ngx_int_t ngx_http_v2_flow_control(
+     ngx_http_v2_connection_t *h2c, ngx_http_v2_stream_t *stream);
+ static void ngx_http_v2_waiting_queue(ngx_http_v2_connection_t *h2c,
+     ngx_http_v2_stream_t *stream);
+ 
+ static ngx_inline ngx_int_t ngx_http_v2_filter_send(
+     ngx_connection_t *fc, ngx_http_v2_stream_t *stream);
+ 
+@@ -121,53 +112,52 @@
+ 
+ 
+ static ngx_http_output_header_filter_pt  ngx_http_next_header_filter;
+ 
+ 
+ static ngx_int_t
+ ngx_http_v2_header_filter(ngx_http_request_t *r)
+ {
+     u_char                     status, *pos, *start, *p, *tmp;
+     size_t                     len, tmp_len;
+     ngx_str_t                  host, location;
+     ngx_uint_t                 i, port;
+     ngx_list_part_t           *part;
+     ngx_table_elt_t           *header;
+     ngx_connection_t          *fc;
+     ngx_http_cleanup_t        *cln;
+     ngx_http_v2_out_frame_t   *frame;
+     ngx_http_core_loc_conf_t  *clcf;
+     ngx_http_core_srv_conf_t  *cscf;
+     u_char                     addr[NGX_SOCKADDR_STRLEN];
++    ngx_http_v2_connection_t  *h2c;
+ 
+     static const u_char nginx[5] = "\x84\xaa\x63\x55\xe7";
+ #if (NGX_HTTP_GZIP)
+     static const u_char accept_encoding[12] =
+         "\x8b\x84\x84\x2d\x69\x5b\x05\x44\x3c\x86\xaa\x6f";
+ #endif
+ 
+     static size_t nginx_ver_len = ngx_http_v2_literal_size(NGINX_VER);
+-    static u_char nginx_ver[ngx_http_v2_literal_size(NGINX_VER)];
+ 
+     static size_t nginx_ver_build_len =
+                                   ngx_http_v2_literal_size(NGINX_VER_BUILD);
+-    static u_char nginx_ver_build[ngx_http_v2_literal_size(NGINX_VER_BUILD)];
+ 
+     if (!r->stream) {
+         return ngx_http_next_header_filter(r);
+     }
+ 
+     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
+                    "http2 header filter");
+ 
+     if (r->header_sent) {
+         return NGX_OK;
+     }
+ 
+     r->header_sent = 1;
+ 
+     if (r != r->main) {
+         return NGX_OK;
+     }
+ 
+     fc = r->connection;
+ 
+@@ -394,292 +384,224 @@
+         if (header[i].value.len > NGX_HTTP_V2_MAX_FIELD) {
+             ngx_log_error(NGX_LOG_CRIT, fc->log, 0,
+                           "too long response header value: \"%V: %V\"",
+                           &header[i].key, &header[i].value);
+             return NGX_ERROR;
+         }
+ 
+         len += 1 + NGX_HTTP_V2_INT_OCTETS + header[i].key.len
+                  + NGX_HTTP_V2_INT_OCTETS + header[i].value.len;
+ 
+         if (header[i].key.len > tmp_len) {
+             tmp_len = header[i].key.len;
+         }
+ 
+         if (header[i].value.len > tmp_len) {
+             tmp_len = header[i].value.len;
+         }
+     }
+ 
+     tmp = ngx_palloc(r->pool, tmp_len);
+-    pos = ngx_pnalloc(r->pool, len);
++    pos = ngx_pnalloc(r->pool, len + 15 + 1);
+ 
+     if (pos == NULL || tmp == NULL) {
+         return NGX_ERROR;
+     }
+ 
+     start = pos;
+ 
++    h2c = r->stream->connection;
++
++    if (h2c->indicate_resize) {
++        *pos = 32;
++        pos = ngx_http_v2_write_int(pos, ngx_http_v2_prefix(5),
++                                    h2c->max_hpack_table_size);
++        h2c->indicate_resize = 0;
++#if (NGX_HTTP_V2_HPACK_ENC)
++        ngx_http_v2_table_resize(h2c);
++#endif
++    }
++
+     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, fc->log, 0,
+                    "http2 output header: \":status: %03ui\"",
+                    r->headers_out.status);
+ 
+     if (status) {
+         *pos++ = status;
+ 
+     } else {
+-        *pos++ = ngx_http_v2_inc_indexed(NGX_HTTP_V2_STATUS_INDEX);
+-        *pos++ = NGX_HTTP_V2_ENCODE_RAW | 3;
+-        pos = ngx_sprintf(pos, "%03ui", r->headers_out.status);
++        ngx_sprintf(pos + 8, "%O3ui", r->headers_out.status);
++        pos = ngx_http_v2_write_header(h2c, pos, (u_char *)":status",
++                                       sizeof(":status") - 1, pos + 8, 3, tmp);
+     }
+ 
+     if (r->headers_out.server == NULL) {
+-
+         if (clcf->server_tokens == NGX_HTTP_SERVER_TOKENS_ON) {
+-            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, fc->log, 0,
+-                           "http2 output header: \"server: %s\"",
+-                           NGINX_VER);
++            pos = ngx_http_v2_write_header_str("server", NGINX_VER);
+ 
+         } else if (clcf->server_tokens == NGX_HTTP_SERVER_TOKENS_BUILD) {
+-            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, fc->log, 0,
+-                           "http2 output header: \"server: %s\"",
+-                           NGINX_VER_BUILD);
++            pos = ngx_http_v2_write_header_str("server", NGINX_VER_BUILD);
+ 
+         } else {
+-            ngx_log_debug0(NGX_LOG_DEBUG_HTTP, fc->log, 0,
+-                           "http2 output header: \"server: nginx\"");
+-        }
+-
+-        *pos++ = ngx_http_v2_inc_indexed(NGX_HTTP_V2_SERVER_INDEX);
+-
+-        if (clcf->server_tokens == NGX_HTTP_SERVER_TOKENS_ON) {
+-            if (nginx_ver[0] == '\0') {
+-                p = ngx_http_v2_write_value(nginx_ver, (u_char *) NGINX_VER,
+-                                            sizeof(NGINX_VER) - 1, tmp);
+-                nginx_ver_len = p - nginx_ver;
+-            }
+-
+-            pos = ngx_cpymem(pos, nginx_ver, nginx_ver_len);
+-
+-        } else if (clcf->server_tokens == NGX_HTTP_SERVER_TOKENS_BUILD) {
+-            if (nginx_ver_build[0] == '\0') {
+-                p = ngx_http_v2_write_value(nginx_ver_build,
+-                                            (u_char *) NGINX_VER_BUILD,
+-                                            sizeof(NGINX_VER_BUILD) - 1, tmp);
+-                nginx_ver_build_len = p - nginx_ver_build;
+-            }
+-
+-            pos = ngx_cpymem(pos, nginx_ver_build, nginx_ver_build_len);
+-
+-        } else {
+-            pos = ngx_cpymem(pos, nginx, sizeof(nginx));
++            pos = ngx_http_v2_write_header_str("server", "nginx");
+         }
+     }
+ 
+     if (r->headers_out.date == NULL) {
+-        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, fc->log, 0,
+-                       "http2 output header: \"date: %V\"",
+-                       &ngx_cached_http_time);
+-
+-        *pos++ = ngx_http_v2_inc_indexed(NGX_HTTP_V2_DATE_INDEX);
+-        pos = ngx_http_v2_write_value(pos, ngx_cached_http_time.data,
+-                                      ngx_cached_http_time.len, tmp);
++        pos = ngx_http_v2_write_header_tbl("date", ngx_cached_http_time);
+     }
+ 
+     if (r->headers_out.content_type.len) {
+-        *pos++ = ngx_http_v2_inc_indexed(NGX_HTTP_V2_CONTENT_TYPE_INDEX);
+-
+         if (r->headers_out.content_type_len == r->headers_out.content_type.len
+             && r->headers_out.charset.len)
+         {
+             len = r->headers_out.content_type.len + sizeof("; charset=") - 1
+                   + r->headers_out.charset.len;
+ 
+             p = ngx_pnalloc(r->pool, len);
+             if (p == NULL) {
+                 return NGX_ERROR;
+             }
+ 
+             p = ngx_cpymem(p, r->headers_out.content_type.data,
+                            r->headers_out.content_type.len);
+ 
+             p = ngx_cpymem(p, "; charset=", sizeof("; charset=") - 1);
+ 
+             p = ngx_cpymem(p, r->headers_out.charset.data,
+                            r->headers_out.charset.len);
+ 
+             /* updated r->headers_out.content_type is also needed for logging */
+ 
+             r->headers_out.content_type.len = len;
+             r->headers_out.content_type.data = p - len;
+         }
+ 
+-        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, fc->log, 0,
+-                       "http2 output header: \"content-type: %V\"",
+-                       &r->headers_out.content_type);
+-
+-        pos = ngx_http_v2_write_value(pos, r->headers_out.content_type.data,
+-                                      r->headers_out.content_type.len, tmp);
++        pos = ngx_http_v2_write_header_tbl("content-type",
++                                           r->headers_out.content_type);
+     }
+ 
+     if (r->headers_out.content_length == NULL
+         && r->headers_out.content_length_n >= 0)
+     {
+-        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, fc->log, 0,
+-                       "http2 output header: \"content-length: %O\"",
+-                       r->headers_out.content_length_n);
+-
+-        *pos++ = ngx_http_v2_inc_indexed(NGX_HTTP_V2_CONTENT_LENGTH_INDEX);
+-
+-        p = pos;
+-        pos = ngx_sprintf(pos + 1, "%O", r->headers_out.content_length_n);
+-        *p = NGX_HTTP_V2_ENCODE_RAW | (u_char) (pos - p - 1);
++        p = ngx_sprintf(pos + 15, "%O", r->headers_out.content_length_n);
++        pos = ngx_http_v2_write_header(h2c, pos, (u_char *)"content-length",
++                                       sizeof("content-length") - 1, pos + 15,
++                                       p - (pos + 15), tmp);
+     }
+ 
+     if (r->headers_out.last_modified == NULL
+         && r->headers_out.last_modified_time != -1)
+     {
+-        *pos++ = ngx_http_v2_inc_indexed(NGX_HTTP_V2_LAST_MODIFIED_INDEX);
+-
+-        ngx_http_time(pos, r->headers_out.last_modified_time);
++        ngx_http_time(pos + 14, r->headers_out.last_modified_time);
+         len = sizeof("Wed, 31 Dec 1986 18:00:00 GMT") - 1;
+-
+-        ngx_log_debug2(NGX_LOG_DEBUG_HTTP, fc->log, 0,
+-                       "http2 output header: \"last-modified: %*s\"",
+-                       len, pos);
+-
+-        /*
+-         * Date will always be encoded using huffman in the temporary buffer,
+-         * so it's safe here to use src and dst pointing to the same address.
+-         */
+-        pos = ngx_http_v2_write_value(pos, pos, len, tmp);
++        pos = ngx_http_v2_write_header(h2c, pos, (u_char *)"last-modified",
++                                       sizeof("last-modified") - 1, pos + 14,
++                                       len, tmp);
+     }
+ 
+     if (r->headers_out.location && r->headers_out.location->value.len) {
+-        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, fc->log, 0,
+-                       "http2 output header: \"location: %V\"",
+-                       &r->headers_out.location->value);
+-
+-        *pos++ = ngx_http_v2_inc_indexed(NGX_HTTP_V2_LOCATION_INDEX);
+-        pos = ngx_http_v2_write_value(pos, r->headers_out.location->value.data,
+-                                      r->headers_out.location->value.len, tmp);
++        pos = ngx_http_v2_write_header_tbl("location", r->headers_out.location->value);
+     }
+ 
+ #if (NGX_HTTP_GZIP)
+     if (r->gzip_vary) {
+-        ngx_log_debug0(NGX_LOG_DEBUG_HTTP, fc->log, 0,
+-                       "http2 output header: \"vary: Accept-Encoding\"");
+-
+-        *pos++ = ngx_http_v2_inc_indexed(NGX_HTTP_V2_VARY_INDEX);
+-        pos = ngx_cpymem(pos, accept_encoding, sizeof(accept_encoding));
++        pos = ngx_http_v2_write_header_str("vary", "Accept-Encoding");
+     }
+ #endif
+ 
+     part = &r->headers_out.headers.part;
+     header = part->elts;
+ 
+     for (i = 0; /* void */; i++) {
+ 
+         if (i >= part->nelts) {
+             if (part->next == NULL) {
+                 break;
+             }
+ 
+             part = part->next;
+             header = part->elts;
+             i = 0;
+         }
+ 
+         if (header[i].hash == 0) {
+             continue;
+         }
+ 
+-#if (NGX_DEBUG)
+-        if (fc->log->log_level & NGX_LOG_DEBUG_HTTP) {
+-            ngx_strlow(tmp, header[i].key.data, header[i].key.len);
+-
+-            ngx_log_debug3(NGX_LOG_DEBUG_HTTP, fc->log, 0,
+-                           "http2 output header: \"%*s: %V\"",
+-                           header[i].key.len, tmp, &header[i].value);
+-        }
+-#endif
+-
+-        *pos++ = 0;
+-
+-        pos = ngx_http_v2_write_name(pos, header[i].key.data,
+-                                     header[i].key.len, tmp);
++        pos = ngx_http_v2_write_header(h2c, pos, header[i].key.data,
++                                       header[i].key.len, header[i].value.data,
++                                       header[i].value.len, tmp);
+ 
+-        pos = ngx_http_v2_write_value(pos, header[i].value.data,
+-                                      header[i].value.len, tmp);
+     }
+ 
+     frame = ngx_http_v2_create_headers_frame(r, start, pos);
+     if (frame == NULL) {
+         return NGX_ERROR;
+     }
+ 
+     ngx_http_v2_queue_blocked_frame(r->stream->connection, frame);
+ 
+     r->stream->queued = 1;
+ 
+     cln = ngx_http_cleanup_add(r, 0);
+     if (cln == NULL) {
+         return NGX_ERROR;
+     }
+ 
+     cln->handler = ngx_http_v2_filter_cleanup;
+     cln->data = r->stream;
+ 
+     fc->send_chain = ngx_http_v2_send_chain;
+     fc->need_last_buf = 1;
+ 
+     return ngx_http_v2_filter_send(fc, r->stream);
+ }
+ 
+ 
+-static u_char *
++u_char *
+ ngx_http_v2_string_encode(u_char *dst, u_char *src, size_t len, u_char *tmp,
+     ngx_uint_t lower)
+ {
+     size_t  hlen;
+ 
+     hlen = ngx_http_v2_huff_encode(src, len, tmp, lower);
+ 
+     if (hlen > 0) {
+         *dst = NGX_HTTP_V2_ENCODE_HUFF;
+         dst = ngx_http_v2_write_int(dst, ngx_http_v2_prefix(7), hlen);
+         return ngx_cpymem(dst, tmp, hlen);
+     }
+ 
+     *dst = NGX_HTTP_V2_ENCODE_RAW;
+     dst = ngx_http_v2_write_int(dst, ngx_http_v2_prefix(7), len);
+ 
+     if (lower) {
+         ngx_strlow(dst, src, len);
+         return dst + len;
+     }
+ 
+     return ngx_cpymem(dst, src, len);
+ }
+ 
+ 
+-static u_char *
++u_char *
+ ngx_http_v2_write_int(u_char *pos, ngx_uint_t prefix, ngx_uint_t value)
+ {
+     if (value < prefix) {
+         *pos++ |= value;
+         return pos;
+     }
+ 
+     *pos++ |= prefix;
+     value -= prefix;
+ 
+     while (value >= 128) {
+         *pos++ = value % 128 + 128;
+         value /= 128;
+     }
+ 
+     *pos++ = (u_char) value;
+ 
+     return pos;
+ }
+ 
+diff -r -N -u20 a/src/http/v2/ngx_http_v2.h b/src/http/v2/ngx_http_v2.h
+--- a/src/http/v2/ngx_http_v2.h	2017-05-30 22:55:24.000000000 +0800
++++ b/src/http/v2/ngx_http_v2.h	2017-08-22 18:52:57.803008000 +0800
+@@ -32,40 +32,47 @@
+ #define NGX_HTTP_V2_PRIORITY_FRAME       0x2
+ #define NGX_HTTP_V2_RST_STREAM_FRAME     0x3
+ #define NGX_HTTP_V2_SETTINGS_FRAME       0x4
+ #define NGX_HTTP_V2_PUSH_PROMISE_FRAME   0x5
+ #define NGX_HTTP_V2_PING_FRAME           0x6
+ #define NGX_HTTP_V2_GOAWAY_FRAME         0x7
+ #define NGX_HTTP_V2_WINDOW_UPDATE_FRAME  0x8
+ #define NGX_HTTP_V2_CONTINUATION_FRAME   0x9
+ 
+ /* frame flags */
+ #define NGX_HTTP_V2_NO_FLAG              0x00
+ #define NGX_HTTP_V2_ACK_FLAG             0x01
+ #define NGX_HTTP_V2_END_STREAM_FLAG      0x01
+ #define NGX_HTTP_V2_END_HEADERS_FLAG     0x04
+ #define NGX_HTTP_V2_PADDED_FLAG          0x08
+ #define NGX_HTTP_V2_PRIORITY_FLAG        0x20
+ 
+ #define NGX_HTTP_V2_MAX_WINDOW           ((1U << 31) - 1)
+ #define NGX_HTTP_V2_DEFAULT_WINDOW       65535
+ 
++#define HPACK_ENC_HTABLE_SZ              128 /* better to keep a PoT < 64k */
++#define HPACK_ENC_HTABLE_ENTRIES         ((HPACK_ENC_HTABLE_SZ * 100) / 128)
++#define HPACK_ENC_DYNAMIC_KEY_TBL_SZ     10  /* 10 is sufficient for most */
++#define HPACK_ENC_MAX_ENTRY              512 /* longest header size to match */
++
++#define NGX_HTTP_V2_DEFAULT_HPACK_TABLE_SIZE     4096
++#define NGX_HTTP_V2_MAX_HPACK_TABLE_SIZE         16384 /* < 64k */
+ 
+ typedef struct ngx_http_v2_connection_s   ngx_http_v2_connection_t;
+ typedef struct ngx_http_v2_node_s         ngx_http_v2_node_t;
+ typedef struct ngx_http_v2_out_frame_s    ngx_http_v2_out_frame_t;
+ 
+ 
+ typedef u_char *(*ngx_http_v2_handler_pt) (ngx_http_v2_connection_t *h2c,
+     u_char *pos, u_char *end);
+ 
+ 
+ typedef struct {
+     ngx_str_t                        name;
+     ngx_str_t                        value;
+ } ngx_http_v2_header_t;
+ 
+ 
+ typedef struct {
+     ngx_uint_t                       sid;
+     size_t                           length;
+     size_t                           padding;
+@@ -93,76 +100,123 @@
+     ngx_http_v2_handler_pt           handler;
+ } ngx_http_v2_state_t;
+ 
+ 
+ 
+ typedef struct {
+     ngx_http_v2_header_t           **entries;
+ 
+     ngx_uint_t                       added;
+     ngx_uint_t                       deleted;
+     ngx_uint_t                       reused;
+     ngx_uint_t                       allocated;
+ 
+     size_t                           size;
+     size_t                           free;
+     u_char                          *storage;
+     u_char                          *pos;
+ } ngx_http_v2_hpack_t;
+ 
+ 
++#if (NGX_HTTP_V2_HPACK_ENC)
++typedef struct {
++    uint64_t                         hash_val;
++    uint32_t                         index;
++    uint16_t                         pos;
++    uint16_t                         klen, vlen;
++    uint16_t                         size;
++    uint16_t                         next;
++} ngx_http_v2_hpack_enc_entry_t;
++
++
++typedef struct {
++    uint64_t                         hash_val;
++    uint32_t                         index;
++    uint16_t                         pos;
++    uint16_t                         klen;
++} ngx_http_v2_hpack_name_entry_t;
++
++
++typedef struct {
++    size_t                           size;    /* size as defined in RFC 7541 */
++    uint32_t                         top;     /* the last entry */
++    uint32_t                         pos;
++    uint16_t                         n_elems; /* number of elements */
++    uint16_t                         base;    /* index of the oldest entry */
++    uint16_t                         last;    /* index of the newest entry */
++
++    /* hash table for dynamic entries, instead using a generic hash table,
++       which would be too slow to process a significant amount of headers,
++       this table is not determenistic, and might ocasionally fail to insert
++       a value, at the cost of slightly worse compression, but significantly
++       faster performance */
++    ngx_http_v2_hpack_enc_entry_t    htable[HPACK_ENC_HTABLE_SZ];
++    ngx_http_v2_hpack_name_entry_t   heads[HPACK_ENC_DYNAMIC_KEY_TBL_SZ];
++    u_char                           storage[NGX_HTTP_V2_MAX_HPACK_TABLE_SIZE +
++                                             HPACK_ENC_MAX_ENTRY];
++} ngx_http_v2_hpack_enc_t;
++#endif
++
++
+ struct ngx_http_v2_connection_s {
+     ngx_connection_t                *connection;
+     ngx_http_connection_t           *http_connection;
+ 
+     ngx_uint_t                       processing;
+ 
+     size_t                           send_window;
+     size_t                           recv_window;
+     size_t                           init_window;
+ 
+     size_t                           frame_size;
+ 
++    size_t                           max_hpack_table_size;
++
+     ngx_queue_t                      waiting;
+ 
+     ngx_http_v2_state_t              state;
+ 
+     ngx_http_v2_hpack_t              hpack;
+ 
+     ngx_pool_t                      *pool;
+ 
+     ngx_http_v2_out_frame_t         *free_frames;
+     ngx_connection_t                *free_fake_connections;
+ 
+     ngx_http_v2_node_t             **streams_index;
+ 
+     ngx_http_v2_out_frame_t         *last_out;
+ 
+     ngx_queue_t                      dependencies;
+     ngx_queue_t                      closed;
+ 
+     ngx_uint_t                       last_sid;
+ 
+     unsigned                         closed_nodes:8;
+     unsigned                         settings_ack:1;
+     unsigned                         blocked:1;
+     unsigned                         goaway:1;
++    unsigned                         indicate_resize:1;
++
++#if (NGX_HTTP_V2_HPACK_ENC)
++    ngx_http_v2_hpack_enc_t          hpack_enc;
++#endif
+ };
+ 
+ 
+ struct ngx_http_v2_node_s {
+     ngx_uint_t                       id;
+     ngx_http_v2_node_t              *index;
+     ngx_http_v2_node_t              *parent;
+     ngx_queue_t                      queue;
+     ngx_queue_t                      children;
+     ngx_queue_t                      reuse;
+     ngx_uint_t                       rank;
+     ngx_uint_t                       weight;
+     double                           rel_weight;
+     ngx_http_v2_stream_t            *stream;
+ };
+ 
+ 
+ struct ngx_http_v2_stream_s {
+     ngx_http_request_t              *request;
+     ngx_http_v2_connection_t        *connection;
+@@ -321,21 +375,48 @@
+ 
+ #define ngx_http_v2_write_uint16(p, s)                                        \
+     ((p)[0] = (u_char) ((s) >> 8),                                            \
+      (p)[1] = (u_char)  (s),                                                  \
+      (p) + sizeof(uint16_t))
+ 
+ #define ngx_http_v2_write_uint32(p, s)                                        \
+     ((p)[0] = (u_char) ((s) >> 24),                                           \
+      (p)[1] = (u_char) ((s) >> 16),                                           \
+      (p)[2] = (u_char) ((s) >> 8),                                            \
+      (p)[3] = (u_char)  (s),                                                  \
+      (p) + sizeof(uint32_t))
+ 
+ #endif
+ 
+ #define ngx_http_v2_write_len_and_type(p, l, t)                               \
+     ngx_http_v2_write_uint32_aligned(p, (l) << 8 | (t))
+ 
+ #define ngx_http_v2_write_sid  ngx_http_v2_write_uint32
+ 
++u_char *ngx_http_v2_string_encode(u_char *dst, u_char *src, size_t len,
++    u_char *tmp, ngx_uint_t lower);
++
++u_char *
++ngx_http_v2_write_int(u_char *pos, ngx_uint_t prefix, ngx_uint_t value);
++
++#define ngx_http_v2_write_name(dst, src, len, tmp)                            \
++    ngx_http_v2_string_encode(dst, src, len, tmp, 1)
++#define ngx_http_v2_write_value(dst, src, len, tmp)                           \
++    ngx_http_v2_string_encode(dst, src, len, tmp, 0)
++
++u_char *
++ngx_http_v2_write_header(ngx_http_v2_connection_t *h2c, u_char *pos,
++    u_char *key, size_t key_len, u_char *value, size_t value_len,
++    u_char *tmp);
++
++void
++ngx_http_v2_table_resize(ngx_http_v2_connection_t *h2c);
++
++#define ngx_http_v2_write_header_str(key, value)                        \
++    ngx_http_v2_write_header(h2c, pos, (u_char *) key, sizeof(key) - 1, \
++    (u_char *) value, sizeof(value) - 1, tmp);
++
++#define ngx_http_v2_write_header_tbl(key, val)                          \
++    ngx_http_v2_write_header(h2c, pos, (u_char *) key, sizeof(key) - 1, \
++    val.data, val.len, tmp);
++
+ #endif /* _NGX_HTTP_V2_H_INCLUDED_ */
+diff -r -N -u20 a/src/http/v2/ngx_http_v2_module.c b/src/http/v2/ngx_http_v2_module.c
+--- a/src/http/v2/ngx_http_v2_module.c	2017-05-30 22:55:24.000000000 +0800
++++ b/src/http/v2/ngx_http_v2_module.c	2017-08-22 18:53:30.307008000 +0800
+@@ -17,42 +17,40 @@
+     ngx_http_variable_value_t *v, uintptr_t data);
+ 
+ static ngx_int_t ngx_http_v2_module_init(ngx_cycle_t *cycle);
+ 
+ static void *ngx_http_v2_create_main_conf(ngx_conf_t *cf);
+ static char *ngx_http_v2_init_main_conf(ngx_conf_t *cf, void *conf);
+ static void *ngx_http_v2_create_srv_conf(ngx_conf_t *cf);
+ static char *ngx_http_v2_merge_srv_conf(ngx_conf_t *cf, void *parent,
+     void *child);
+ static void *ngx_http_v2_create_loc_conf(ngx_conf_t *cf);
+ static char *ngx_http_v2_merge_loc_conf(ngx_conf_t *cf, void *parent,
+     void *child);
+ 
+ static char *ngx_http_v2_recv_buffer_size(ngx_conf_t *cf, void *post,
+     void *data);
+ static char *ngx_http_v2_pool_size(ngx_conf_t *cf, void *post, void *data);
+ static char *ngx_http_v2_preread_size(ngx_conf_t *cf, void *post, void *data);
+ static char *ngx_http_v2_streams_index_mask(ngx_conf_t *cf, void *post,
+     void *data);
+ static char *ngx_http_v2_chunk_size(ngx_conf_t *cf, void *post, void *data);
+-static char *ngx_http_v2_spdy_deprecated(ngx_conf_t *cf, ngx_command_t *cmd,
+-    void *conf);
+ 
+ 
+ static ngx_conf_post_t  ngx_http_v2_recv_buffer_size_post =
+     { ngx_http_v2_recv_buffer_size };
+ static ngx_conf_post_t  ngx_http_v2_pool_size_post =
+     { ngx_http_v2_pool_size };
+ static ngx_conf_post_t  ngx_http_v2_preread_size_post =
+     { ngx_http_v2_preread_size };
+ static ngx_conf_post_t  ngx_http_v2_streams_index_mask_post =
+     { ngx_http_v2_streams_index_mask };
+ static ngx_conf_post_t  ngx_http_v2_chunk_size_post =
+     { ngx_http_v2_chunk_size };
+ 
+ 
+ static ngx_command_t  ngx_http_v2_commands[] = {
+ 
+     { ngx_string("http2_recv_buffer_size"),
+       NGX_HTTP_MAIN_CONF|NGX_CONF_TAKE1,
+       ngx_conf_set_size_slot,
+       NGX_HTTP_MAIN_CONF_OFFSET,
+@@ -112,96 +110,40 @@
+       NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_TAKE1,
+       ngx_conf_set_msec_slot,
+       NGX_HTTP_SRV_CONF_OFFSET,
+       offsetof(ngx_http_v2_srv_conf_t, recv_timeout),
+       NULL },
+ 
+     { ngx_string("http2_idle_timeout"),
+       NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_TAKE1,
+       ngx_conf_set_msec_slot,
+       NGX_HTTP_SRV_CONF_OFFSET,
+       offsetof(ngx_http_v2_srv_conf_t, idle_timeout),
+       NULL },
+ 
+     { ngx_string("http2_chunk_size"),
+       NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+       ngx_conf_set_size_slot,
+       NGX_HTTP_LOC_CONF_OFFSET,
+       offsetof(ngx_http_v2_loc_conf_t, chunk_size),
+       &ngx_http_v2_chunk_size_post },
+ 
+-    { ngx_string("spdy_recv_buffer_size"),
+-      NGX_HTTP_MAIN_CONF|NGX_CONF_TAKE1,
+-      ngx_http_v2_spdy_deprecated,
+-      NGX_HTTP_MAIN_CONF_OFFSET,
+-      0,
+-      NULL },
+-
+-    { ngx_string("spdy_pool_size"),
+-      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_TAKE1,
+-      ngx_http_v2_spdy_deprecated,
+-      NGX_HTTP_SRV_CONF_OFFSET,
+-      0,
+-      NULL },
+-
+-    { ngx_string("spdy_max_concurrent_streams"),
+-      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_TAKE1,
+-      ngx_http_v2_spdy_deprecated,
+-      NGX_HTTP_SRV_CONF_OFFSET,
+-      0,
+-      NULL },
+-
+-    { ngx_string("spdy_streams_index_size"),
+-      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_TAKE1,
+-      ngx_http_v2_spdy_deprecated,
+-      NGX_HTTP_SRV_CONF_OFFSET,
+-      0,
+-      NULL },
+-
+-    { ngx_string("spdy_recv_timeout"),
+-      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_TAKE1,
+-      ngx_http_v2_spdy_deprecated,
+-      NGX_HTTP_SRV_CONF_OFFSET,
+-      0,
+-      NULL },
+-
+-    { ngx_string("spdy_keepalive_timeout"),
+-      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_TAKE1,
+-      ngx_http_v2_spdy_deprecated,
+-      NGX_HTTP_SRV_CONF_OFFSET,
+-      0,
+-      NULL },
+-
+-    { ngx_string("spdy_headers_comp"),
+-      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_TAKE1,
+-      ngx_http_v2_spdy_deprecated,
+-      NGX_HTTP_SRV_CONF_OFFSET,
+-      0,
+-      NULL },
+-
+-    { ngx_string("spdy_chunk_size"),
+-      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+-      ngx_http_v2_spdy_deprecated,
+-      NGX_HTTP_LOC_CONF_OFFSET,
+-      0,
+-      NULL },
+-
+       ngx_null_command
+ };
+ 
+ 
+ static ngx_http_module_t  ngx_http_v2_module_ctx = {
+     ngx_http_v2_add_variables,             /* preconfiguration */
+     NULL,                                  /* postconfiguration */
+ 
+     ngx_http_v2_create_main_conf,          /* create main configuration */
+     ngx_http_v2_init_main_conf,            /* init main configuration */
+ 
+     ngx_http_v2_create_srv_conf,           /* create server configuration */
+     ngx_http_v2_merge_srv_conf,            /* merge server configuration */
+ 
+     ngx_http_v2_create_loc_conf,           /* create location configuration */
+     ngx_http_v2_merge_loc_conf             /* merge location configuration */
+ };
+ 
+ 
+ ngx_module_t  ngx_http_v2_module = {
+@@ -479,31 +421,20 @@
+ 
+ 
+ static char *
+ ngx_http_v2_chunk_size(ngx_conf_t *cf, void *post, void *data)
+ {
+     size_t *sp = data;
+ 
+     if (*sp == 0) {
+         ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
+                            "the http2 chunk size cannot be zero");
+ 
+         return NGX_CONF_ERROR;
+     }
+ 
+     if (*sp > NGX_HTTP_V2_MAX_FRAME_SIZE) {
+         *sp = NGX_HTTP_V2_MAX_FRAME_SIZE;
+     }
+ 
+     return NGX_CONF_OK;
+ }
+-
+-
+-static char *
+-ngx_http_v2_spdy_deprecated(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+-{
+-    ngx_conf_log_error(NGX_LOG_WARN, cf, 0,
+-                       "invalid directive \"%V\": ngx_http_spdy_module "
+-                       "was superseded by ngx_http_v2_module", &cmd->name);
+-
+-    return NGX_CONF_OK;
+-}
+diff -r -N -u20 a/src/http/v2/ngx_http_v2_table.c b/src/http/v2/ngx_http_v2_table.c
+--- a/src/http/v2/ngx_http_v2_table.c	2017-05-30 22:55:24.000000000 +0800
++++ b/src/http/v2/ngx_http_v2_table.c	2017-08-22 18:52:57.807008000 +0800
+@@ -330,20 +330,451 @@
+ 
+         return NGX_ERROR;
+     }
+ 
+     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, h2c->connection->log, 0,
+                    "http2 new hpack table size: %uz was:%uz",
+                    size, h2c->hpack.size);
+ 
+     needed = h2c->hpack.size - size;
+ 
+     while (needed > (ssize_t) h2c->hpack.free) {
+         entry = h2c->hpack.entries[h2c->hpack.deleted++ % h2c->hpack.allocated];
+         h2c->hpack.free += 32 + entry->name.len + entry->value.len;
+     }
+ 
+     h2c->hpack.size = size;
+     h2c->hpack.free -= needed;
+ 
+     return NGX_OK;
+ }
++
++
++#if (NGX_HTTP_V2_HPACK_ENC)
++
++static ngx_int_t
++hpack_get_static_index(ngx_http_v2_connection_t *h2c, u_char *val, size_t len);
++
++static ngx_int_t
++hpack_get_dynamic_index(ngx_http_v2_connection_t *h2c, uint64_t key_hash,
++                        uint8_t *key, size_t key_len);
++
++
++void
++ngx_http_v2_table_resize(ngx_http_v2_connection_t *h2c)
++{
++    ngx_http_v2_hpack_enc_entry_t  *table;
++    uint64_t                        idx;
++
++    table = h2c->hpack_enc.htable;
++
++    while (h2c->hpack_enc.size > h2c->max_hpack_table_size) {
++        idx = h2c->hpack_enc.base;
++        h2c->hpack_enc.base = table[idx].next;
++        h2c->hpack_enc.size -= table[idx].size;
++        table[idx].hash_val = 0;
++        h2c->hpack_enc.n_elems--;
++    }
++}
++
++
++/* checks if a header is in the hpack table - if so returns the table entry,
++   otherwise encodes and inserts into the table and returns 0,
++   if failed to insert into table, returns -1 */
++static ngx_int_t
++ngx_http_v2_table_encode_strings(ngx_http_v2_connection_t *h2c,
++    size_t key_len, size_t val_len, uint8_t *key, uint8_t *val,
++    ngx_int_t *header_idx)
++{
++    uint64_t  hash_val, key_hash, idx, lru;
++    int       i;
++    size_t    size = key_len + val_len + 32;
++    uint8_t  *storage = h2c->hpack_enc.storage;
++
++    ngx_http_v2_hpack_enc_entry_t   *table;
++    ngx_http_v2_hpack_name_entry_t  *name;
++
++    *header_idx = NGX_ERROR;
++    /* step 1: compute the hash value of header */
++    if (size > HPACK_ENC_MAX_ENTRY || size > h2c->max_hpack_table_size) {
++        return NGX_ERROR;
++    }
++
++    key_hash = ngx_murmur_hash2_64(key, key_len, 0x01234);
++    hash_val = ngx_murmur_hash2_64(val, val_len, key_hash);
++
++    if (hash_val == 0) {
++        return NGX_ERROR;
++    }
++
++    /* step 2: check if full header in the table */
++    idx = hash_val;
++    i = -1;
++    while (idx) {
++         /* at most 8 locations are checked, but most will be done in 1 or 2 */
++        table = &h2c->hpack_enc.htable[idx % HPACK_ENC_HTABLE_SZ];
++        if (table->hash_val == hash_val
++            && table->klen == key_len
++            && table->vlen == val_len
++            && ngx_memcmp(key, storage + table->pos, key_len) == 0
++            && ngx_memcmp(val, storage + table->pos + key_len, val_len) == 0)
++        {
++            return (h2c->hpack_enc.top - table->index) + 61;
++        }
++
++        if (table->hash_val == 0 && i == -1) {
++            i = idx % HPACK_ENC_HTABLE_SZ;
++            break;
++        }
++
++        idx >>= 8;
++    }
++
++    /* step 3: check if key is in one of the tables */
++    *header_idx = hpack_get_static_index(h2c, key, key_len);
++
++    if (i == -1) {
++        return NGX_ERROR;
++    }
++
++    if (*header_idx == NGX_ERROR) {
++        *header_idx = hpack_get_dynamic_index(h2c, key_hash, key, key_len);
++    }
++
++    /* step 4: store the new entry */
++    table =  h2c->hpack_enc.htable;
++
++    if (h2c->hpack_enc.top == 0xffffffff) {
++        /* just to be on the safe side, avoid overflow */
++        ngx_memset(&h2c->hpack_enc, 0, sizeof(ngx_http_v2_hpack_enc_t));
++    }
++
++    while ((h2c->hpack_enc.size + size > h2c->max_hpack_table_size)
++           || h2c->hpack_enc.n_elems == HPACK_ENC_HTABLE_ENTRIES) {
++        /* make space for the new entry first */
++        idx = h2c->hpack_enc.base;
++        h2c->hpack_enc.base = table[idx].next;
++        h2c->hpack_enc.size -= table[idx].size;
++        table[idx].hash_val = 0;
++        h2c->hpack_enc.n_elems--;
++    }
++
++    table[i] = (ngx_http_v2_hpack_enc_entry_t){.hash_val = hash_val,
++                                               .index = h2c->hpack_enc.top,
++                                               .pos = h2c->hpack_enc.pos,
++                                               .klen = key_len,
++                                               .vlen = val_len,
++                                               .size = size,
++                                               .next = 0};
++
++    table[h2c->hpack_enc.last].next = i;
++    if (h2c->hpack_enc.n_elems == 0) {
++        h2c->hpack_enc.base = i;
++    }
++
++    h2c->hpack_enc.last = i;
++    h2c->hpack_enc.top++;
++    h2c->hpack_enc.size += size;
++    h2c->hpack_enc.n_elems++;
++
++    /* update header name lookup */
++    if (*header_idx == NGX_ERROR ) {
++        lru = h2c->hpack_enc.top;
++
++        for (i=0; i<HPACK_ENC_DYNAMIC_KEY_TBL_SZ; i++) {
++
++            name = &h2c->hpack_enc.heads[i];
++
++            if ( name->hash_val == 0 || (name->hash_val == key_hash
++                && ngx_memcmp(storage + name->pos, key, key_len) == 0) )
++            {
++                name->hash_val = key_hash;
++                name->pos = h2c->hpack_enc.pos;
++                name->index = h2c->hpack_enc.top - 1;
++                break;
++            }
++
++            if (lru > name->index) {
++                lru = name->index;
++                idx = i;
++            }
++        }
++
++        if (i == HPACK_ENC_DYNAMIC_KEY_TBL_SZ) {
++            name = &h2c->hpack_enc.heads[idx];
++            name->hash_val = hash_val;
++            name->pos = h2c->hpack_enc.pos;
++            name->index = h2c->hpack_enc.top - 1;
++        }
++    }
++
++    ngx_memcpy(storage + h2c->hpack_enc.pos, key, key_len);
++    ngx_memcpy(storage + h2c->hpack_enc.pos + key_len, val, val_len);
++
++    h2c->hpack_enc.pos += size;
++    if (h2c->hpack_enc.pos > NGX_HTTP_V2_MAX_HPACK_TABLE_SIZE) {
++        h2c->hpack_enc.pos = 0;
++    }
++
++    return NGX_OK;
++}
++
++
++u_char *
++ngx_http_v2_write_header(ngx_http_v2_connection_t *h2c, u_char *pos,
++                         u_char *key, size_t key_len,
++                         u_char *value, size_t value_len,
++                         u_char *tmp)
++{
++    ngx_int_t idx, header_idx;
++
++    ngx_log_debug4(NGX_LOG_DEBUG_HTTP, h2c->connection->log, 0,
++                   "http2 output header: %*s: %*s", key_len, key, value_len,
++                   value);
++
++    /* attempt to find the value in the dynamic table */
++    idx = ngx_http_v2_table_encode_strings(h2c, key_len, value_len, key, value,
++                                           &header_idx);
++
++    if (idx > 0) {
++        /* positive index indicates success */
++        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, h2c->connection->log, 0,
++                       "http2 hpack encode: Indexed Header Field: %ud", idx);
++
++        *pos = 128;
++        pos = ngx_http_v2_write_int(pos, ngx_http_v2_prefix(7), idx);
++
++    } else {
++
++        if (header_idx == NGX_ERROR) { /* if key is not present */
++
++            if (idx == NGX_ERROR) {    /* if header was not added */
++                *pos++ = 0;
++
++                ngx_log_debug0(NGX_LOG_DEBUG_HTTP, h2c->connection->log, 0,
++                              "http2 hpack encode: Literal Header Field without"
++                              " Indexing — New Name");
++            } else {                   /* if header was added */
++                *pos++ = 64;
++
++                ngx_log_debug0(NGX_LOG_DEBUG_HTTP, h2c->connection->log, 0,
++                              "http2 hpack encode: Literal Header Field with "
++                              "Incremental Indexing — New Name");
++            }
++
++            pos = ngx_http_v2_write_name(pos, key, key_len, tmp);
++
++        } else {                       /* if key is present */
++
++            if (idx == NGX_ERROR) {
++                *pos = 0;
++                pos = ngx_http_v2_write_int(pos, ngx_http_v2_prefix(4), header_idx);
++
++                ngx_log_debug1(NGX_LOG_DEBUG_HTTP, h2c->connection->log, 0,
++                              "http2 hpack encode: Literal Header Field without"
++                              " Indexing — Indexed Name: %ud", header_idx);
++            } else {
++                *pos = 64;
++                pos = ngx_http_v2_write_int(pos, ngx_http_v2_prefix(6), header_idx);
++
++                ngx_log_debug1(NGX_LOG_DEBUG_HTTP, h2c->connection->log, 0,
++                              "http2 hpack encode: Literal Header Field with "
++                              "Incremental Indexing — Indexed Name: %ud", header_idx);
++            }
++        }
++
++        pos = ngx_http_v2_write_value(pos, value, value_len, tmp);
++    }
++
++    return pos;
++}
++
++
++static ngx_int_t
++hpack_get_dynamic_index(ngx_http_v2_connection_t *h2c, uint64_t key_hash,
++                        uint8_t *key, size_t key_len)
++{
++    ngx_http_v2_hpack_name_entry_t  *name;
++    int                              i;
++
++    for (i=0; i<HPACK_ENC_DYNAMIC_KEY_TBL_SZ; i++) {
++        name = &h2c->hpack_enc.heads[i];
++
++        if (name->hash_val == key_hash
++            && ngx_memcmp(h2c->hpack_enc.storage + name->pos, key, key_len) == 0)
++        {
++            if (name->index >= h2c->hpack_enc.top - h2c->hpack_enc.n_elems) {
++                return (h2c->hpack_enc.top - name->index) + 61;
++            }
++            break;
++        }
++    }
++
++    return NGX_ERROR;
++}
++
++
++/* decide if a given header is present in the static dictionary, this could be
++   done in several ways, but it seems the fastest one is "exhaustive" search */
++static ngx_int_t
++hpack_get_static_index(ngx_http_v2_connection_t *h2c, u_char *val, size_t len)
++{
++    /* the static dictionary of response only headers,
++       although response headers can be put by origin,
++       that would be rare */
++    static const struct {
++        u_char         len;
++        const u_char   val[28];
++        u_char         idx;
++    } server_headers[] = {
++        { 3, "age",                         21},//0
++        { 3, "via",                         60},
++        { 4, "date",                        33},//2
++        { 4, "etag",                        34},
++        { 4, "link",                        45},
++        { 4, "vary",                        59},
++        { 5, "allow",                       22},//6
++        { 6, "server",                      54},//7
++        { 7, "expires",                     36},//8
++        { 7, "refresh",                     52},
++        { 8, "location",                    46},//10
++        {10, "set-cookie",                  55},//11
++        {11, "retry-after",                 53},//12
++        {12, "content-type",                31},//13
++        {13, "content-range",               30},//14
++        {13, "accept-ranges",               18},
++        {13, "cache-control",               24},
++        {13, "last-modified",               44},
++        {14, "content-length",              28},//18
++        {16, "content-encoding",            26},//19
++        {16, "content-language",            27},
++        {16, "content-location",            29},
++        {16, "www-authenticate",            61},
++        {17, "transfer-encoding",           57},//23
++        {18, "proxy-authenticate",          48},//24
++        {19, "content-disposition",         25},//25
++        {25, "strict-transport-security",   56},//26
++        {27, "access-control-allow-origin", 20},//27
++        {99, "",                            99},
++    }, *header;
++
++    /* for a given length, where to start the search
++       since minimal length is 3, the table has a -3
++       offset */
++    static const int8_t start_at[] = {
++        [3-3]  = 0,
++        [4-3]  = 2,
++        [5-3]  = 6,
++        [6-3]  = 7,
++        [7-3]  = 8,
++        [8-3]  = 10,
++        [9-3]  = -1,
++        [10-3] = 11,
++        [11-3] = 12,
++        [12-3] = 13,
++        [13-3] = 14,
++        [14-3] = 18,
++        [15-3] = -1,
++        [16-3] = 19,
++        [17-3] = 23,
++        [18-3] = 24,
++        [19-3] = 25,
++        [20-3] = -1,
++        [21-3] = -1,
++        [22-3] = -1,
++        [23-3] = -1,
++        [24-3] = -1,
++        [25-3] = 26,
++        [26-3] = -1,
++        [27-3] = 27,
++    };
++
++    uint64_t pref;
++    size_t   save_len = len, i;
++    int8_t   start;
++
++    /* early exit for out of bounds lengths */
++    if (len < 3 || len > 27) {
++        return NGX_ERROR;
++    }
++
++    start = start_at[len - 3];
++    if (start == -1) {
++        /* exit for non existent lengths */
++        return NGX_ERROR;
++    }
++
++    header = &server_headers[start_at[len - 3]];
++
++    /* load first 8 bytes of key, for fast comparison */
++    if (len < 8) {
++        pref = 0;
++        if (len >= 4) {
++            pref = *(uint32_t *)(val + len - 4) | 0x20202020;
++            len -= 4;
++        }
++        while (len > 0) { /* 3 iterations at most */
++            pref = (pref << 8) ^ (val[len - 1] | 0x20);
++            len--;
++        }
++    } else {
++        pref = *(uint64_t *)val | 0x2020202020202020;
++        len -= 8;
++    }
++
++    /* iterate over headers with the right length */
++    while (header->len == save_len) {
++        /* quickly compare the first 8 bytes, most tests will end here */
++        if (pref != *(uint64_t *) header->val) {
++            header++;
++            continue;
++        }
++
++        if (len == 0) {
++            /* len == 0, indicates prefix held the entire key */
++            return header->idx;
++        }
++        /* for longer keys compare the rest */
++        i = 1 + (save_len + 7) % 8; /* align so we can compare in quadwords */
++
++        while (i + 8 <= save_len) { /* 3 iterations at most */
++            if ( *(uint64_t *)&header->val[i]
++                 != (*(uint64_t *) &val[i]| 0x2020202020202020) )
++            {
++                header++;
++                i = 0;
++                break;
++            }
++            i += 8;
++        }
++
++        if (i == 0) {
++            continue;
++        }
++
++        /* found the corresponding entry in the static dictionary */
++        return header->idx;
++    }
++
++    return NGX_ERROR;
++}
++
++#else
++
++u_char *
++ngx_http_v2_write_header(ngx_http_v2_connection_t *h2c, u_char *pos,
++                         u_char *key, size_t key_len,
++                         u_char *value, size_t value_len,
++                         u_char *tmp)
++{
++    ngx_log_debug4(NGX_LOG_DEBUG_HTTP, h2c->connection->log, 0,
++                   "http2 output header: %*s: %*s", key_len, key, value_len,
++                   value);
++
++    *pos++ = 64;
++    pos = ngx_http_v2_write_name(pos, key, key_len, tmp);
++    pos = ngx_http_v2_write_value(pos, value, value_len, tmp);
++
++    return pos;
++}
++
++#endif
