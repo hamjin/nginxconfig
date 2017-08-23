@@ -1,5 +1,4 @@
-sslpatch.patch 是一个用于为OpenSSL 1.0.2l版本添加ChaCha20-Poly1305, Camellia-GCM, X25519曲线以及硬编码的等价加密组的Patch.
-nginx.patch  是一个用于为nginx-1.13.1版本添加Dymanic TLS Records, HTTP2+SPDY,HTTP2-HPACK头部压缩完整编码的Patch.
+openssl-1.0.2l.tar.gz 是添加了ChaCha20-Poly1305, Camellia-GCM, X25519曲线以及硬编码的等价加密组的PatchOpenSSL 1.0.2l版本源码.
 
 如何编译：
 1.安装依赖
@@ -45,27 +44,23 @@ sudo apt-get install build-essential libpcre3 libpcre3-dev zlib1g-dev unzip git 
   --------以上在bash中执行（打#号的内容为注释除外）-----------
 3.补丁
 本站使用了ChaCha20-Poly1305 for OpenSSL (ALLPATCH.patch)，以及 Cloudflare的Dynamic TLS Records for Nginx， Nginx http2 spdy, Nginx http2 hpack补丁。
+补丁已打好，请使用我的源码包
 先来获取补丁文件：
 --------以下在bash中执行（打#号的内容为注释除外）-----------
 git clone https://github.com/railjty/nginxconfig.git
+git clone https://github.com/cloudflare/sslconfig.git
 --------以上在bash中执行（打#号的内容为注释除外）-----------
 OpenSSL
 由于系统自带的 OpenSSL 库往往不够新，推荐在编译 Nginx 时指定 OpenSSL 源码目录，而不是使用系统自带的版本，这样更可控。
 本站目前使用 OpenSSL 1.0.2l：
 --------以下在bash中执行（打#号的内容为注释除外）-----------
 
-wget -O openssl.tar.gz -c https://github.com/openssl/openssl/archive/OpenSSL_1_0_2l.tar.gz
-tar zxf openssl.tar.gz
-mv openssl-OpenSSL_1_0_2l/ openssl
+mv nginxconfig/openssl-1.0.2l.tar.gz ./
+tar zxf openssl-1.0.2l.tar.gz
+mv openssl-1.0.2l/ openssl
 --------以上在bash中执行（打#号的内容为注释除外）-----------
 
-打上 ChaCha20/Poly1305 补丁：
 
---------以下在bash中执行（打#号的内容为注释除外）-----------
-cd openssl
-patch -p1 < ../nginxconfig/sslpatch.patch 
-cd ../
---------以上在bash中执行（打#号的内容为注释除外）-----------
 编译并安装 Nginx
 接着就可以获取 Nginx 源码，并打上 Dynamic TLS Records 补丁并编译和安装：
 --------以下在bash中执行（打#号的内容为注释除外）-----------
@@ -73,14 +68,20 @@ wget -c https://nginx.org/download/nginx-1.13.1.tar.gz
 tar zxf nginx-1.13.1.tar.gz
 
 cd nginx-1.13.1/
-patch -p1 < ../nginxconfig/nginx.patch
+patch -p1 < ../sslconfig/patches/nginx__1.11.5_dynamic_tls_records.patch
+patch -p1 < ../sslconfig/patches/nginx_1.13.1_http2_hpack.patch
+patch -p1 < ../sslconfig/patches/nginx__1.13.0_http2_spdy.patch
+#在./auto/options中添加如下内容
 
-cd nginx-1.13.1/
-./configure --add-module=../ngx_brotli --add-module=../nginx-ct-1.3.2 --with-openssl=../openssl --with-http_v2_module --with-http_ssl_module --with-http_gzip_static_module --with-http_spdy_module --with-http_v2_hpack_enc
+HTTP_SPDY=YES
+HTTP_V2_HPACK_ENC=YES
+
+#再执行以下内容
+./configure --add-module=../ngx_brotli --add-module=../nginx-ct-1.3.2 --with-openssl=../openssl --with-http_v2_module --with-http_ssl_module --with-http_gzip_static_module
 make
 sudo make install
 --------以上在bash中执行（打#号的内容为注释除外）-----------
-除了 http_v2 http_spdy http_v2_hpack_enc和 http_ssl 这两个 HTTP/2 必备模块之外，我还额外启用了 http_gzip_static，需要启用哪些模块需要根据自己实际情况来决定（注：从 Nginx 1.11.5 开始，ipv6 模块已经内置，故 --with-ipv6 配置项已被移除）。
+除了 http_v2 http_spdy http_v2_hpack_enc和 http_ssl 这三个 HTTP/2 必备模块之外，我还额外启用了 http_gzip_static，需要启用哪些模块需要根据自己实际情况来决定（注：从 Nginx 1.11.5 开始，ipv6 模块已经内置，故 --with-ipv6 配置项已被移除）。
 以上步骤会把 Nginx 装到 /usr/local/nginx/ 目录，如需更改路径可以在 configure 时指定。
 管理脚本与自启动
 为了方便管理 Nginx 服务，再创建一个管理脚本：
