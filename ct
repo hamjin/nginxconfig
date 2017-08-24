@@ -1,9 +1,9 @@
 #cts
-/root/ct-submit-1.1.2/ct-submit-1.1.2 ctlog-gen2.api.venafi.com </usr/local/nginx/conf/ecc.pem >/root/ct/ecc/venafi.sct
-/root/ct-submit-1.1.2/ct-submit-1.1.2 ctlog.wosign.com </usr/local/nginx/conf/ecc.pem >/root/ct/ecc/wosign.sct
+/root/ct-submit-1.1.2/ct-submit-1.1.2 ct2.digicert-ct.com </usr/local/nginx/conf/ecc.pem >/root/ct/ecc/ds2.sct
+/root/ct-submit-1.1.2/ct-submit-1.1.2 ct1.digicert-ct.com/log </usr/local/nginx/conf/ecc.pem >/root/ct/ecc/ds1.sct
 /root/ct-submit-1.1.2/ct-submit-1.1.2 ctserver.cnnic.cn </usr/local/nginx/conf/ecc.pem >/root/ct/ecc/cnnic.sct
-/root/ct-submit-1.1.2/ct-submit-1.1.2 ctlog-gen2.api.venafi.com </usr/local/nginx/conf/rsa.pem >/root/ct/rsa/venafi.sct
-/root/ct-submit-1.1.2/ct-submit-1.1.2 ctlog.wosign.com </usr/local/nginx/conf/rsa.pem >/root/ct/rsa/wosign.sct
+/root/ct-submit-1.1.2/ct-submit-1.1.2 ct2.digicert-ct.com</usr/local/nginx/conf/rsa.pem >/root/ct/rsa/ds2.sct
+/root/ct-submit-1.1.2/ct-submit-1.1.2 ct1.digicert-ct.com </usr/local/nginx/conf/rsa.pem >/root/ct/rsa/ds1.sct
 /root/ct-submit-1.1.2/ct-submit-1.1.2 ctserver.cnnic.cn </usr/local/nginx/conf/rsa.pem >/root/ct/rsa/cnnic.sct
 sudo nginx -s stop
 sudo nginx
