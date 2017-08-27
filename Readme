@@ -1,11 +1,11 @@
-openssl-1.0.2l.tar.gz 是添加了ChaCha20-Poly1305, Camellia-GCM, X25519曲线以及硬编码的等价加密组的PatchOpenSSL 1.0.2l版本源码.
+boringssl.tar.gz 是添加了ChaCha20-Poly1305, Camellia-GCM, X25519曲线以及硬编码的等价加密组的PatchOpenSSL 1.0.2l版本源码.
 
 如何编译：
 1.安装依赖
 我的系统是 Ubuntu 16.04.1 LTS，如果你使用的是其它发行版，与包管理有关的命令请自行调整。
 首先安装依赖库和编译要用到的工具：
 --------以下在bash中执行（打#号的内容为注释除外）-----------
-sudo apt-get install build-essential libpcre3 libpcre3-dev zlib1g-dev unzip git autoconf libtool automake
+sudo apt-get install build-essential libpcre3 libpcre3-dev zlib1g-dev unzip git autoconf libtool automake golang
 --------以上在bash中执行（打#号的内容为注释除外）-----------
 2.获取必要组件
   2.1nginx-ct  nginx-ct 模块用于启用 Certificate Transparency 功能。直接从 github 上获取源码：
@@ -42,22 +42,21 @@ sudo apt-get install build-essential libpcre3 libpcre3-dev zlib1g-dev unzip git 
   git submodule update --init
   cd ../
   --------以上在bash中执行（打#号的内容为注释除外）-----------
-3.补丁
-本站使用了ChaCha20-Poly1305 for OpenSSL (ALLPATCH.patch)，以及 Cloudflare的Dynamic TLS Records for Nginx， Nginx http2 spdy, Nginx http2 hpack补丁。
+3.Boringssl
+本站使用了Boringssl 2987，以及 Cloudflare的Dynamic TLS Records for Nginx， Nginx http2 spdy, Nginx http2 hpack补丁。
 补丁已打好，请使用我的源码包
 先来获取补丁文件：
 --------以下在bash中执行（打#号的内容为注释除外）-----------
 git clone https://github.com/railjty/nginxconfig.git
 git clone https://github.com/cloudflare/sslconfig.git
 --------以上在bash中执行（打#号的内容为注释除外）-----------
-OpenSSL
-由于系统自带的 OpenSSL 库往往不够新，推荐在编译 Nginx 时指定 OpenSSL 源码目录，而不是使用系统自带的版本，这样更可控。
-本站目前使用 OpenSSL 1.0.2l：
+本站目前使用Boringssl(修复了SSL——BAD——MAC——RECORD的问题)：
 --------以下在bash中执行（打#号的内容为注释除外）-----------
 
-mv nginxconfig/openssl-1.0.2l.tar.gz ./
-tar zxf openssl-1.0.2l.tar.gz
-mv openssl-1.0.2l/ openssl
+mv nginxconfig/boringssl.tar.gz ./
+tar zxf boringssl.tar.gz
+mv boringssl/ openssl
+
 --------以上在bash中执行（打#号的内容为注释除外）-----------
 
 
