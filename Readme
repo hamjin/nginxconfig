@@ -1,4 +1,4 @@
-boringssl.tar.gz 是添加了ChaCha20-Poly1305, Camellia-GCM, X25519曲线以及硬编码的等价加密组的PatchOpenSSL 1.0.2l版本源码.
+boringssl.tar.gz是谷歌Fork的OpenSSL, 有等价加密算法，Chacha20-Poly1305,X25519的添加.
 
 如何编译：
 1.安装依赖
