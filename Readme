@@ -5,7 +5,7 @@ boringssl.tar.gz 是添加了ChaCha20-Poly1305, Camellia-GCM, X25519曲线以及
 我的系统是 Ubuntu 16.04.1 LTS，如果你使用的是其它发行版，与包管理有关的命令请自行调整。
 首先安装依赖库和编译要用到的工具：
 --------以下在bash中执行（打#号的内容为注释除外）-----------
-sudo apt-get install build-essential libpcre3 libpcre3-dev zlib1g-dev unzip git autoconf libtool automake golang
+sudo apt-get install build-essential libpcre3 libpcre3-dev zlib1g-dev unzip git autoconf libtool automake golang cmake
 --------以上在bash中执行（打#号的内容为注释除外）-----------
 2.获取必要组件
   2.1nginx-ct  nginx-ct 模块用于启用 Certificate Transparency 功能。直接从 github 上获取源码：
@@ -55,7 +55,20 @@ git clone https://github.com/cloudflare/sslconfig.git
 
 mv nginxconfig/boringssl.tar.gz ./
 tar zxf boringssl.tar.gz
-mv boringssl/ openssl
+mv boringssl
+cd boringssl
+export CFLAGS="-Wno-error"
+mkdir build
+cd build
+cmake ../
+make
+cd ../
+mkdir -p .openssl/lib
+cd .openssl
+ln -s ../include .
+cd ../
+cp build/crypto/libcrypto.a build/ssl/libssl.a .openssl/lib
+cd ../
 
 --------以上在bash中执行（打#号的内容为注释除外）-----------
 
@@ -63,10 +76,8 @@ mv boringssl/ openssl
 编译并安装 Nginx
 接着就可以获取 Nginx 源码，并打上 Dynamic TLS Records 补丁并编译和安装：
 --------以下在bash中执行（打#号的内容为注释除外）-----------
-wget -c https://nginx.org/download/nginx-1.13.1.tar.gz
-tar zxf nginx-1.13.1.tar.gz
-
-cd nginx-1.13.1/
+mv nginxconfig/nginx-1.13.4.tar.zg ./
+tar zxf nginx-1.13.4.tar.gz
 patch -p1 < ../sslconfig/patches/nginx__1.11.5_dynamic_tls_records.patch
 patch -p1 < ../sslconfig/patches/nginx_1.13.1_http2_hpack.patch
 patch -p1 < ../sslconfig/patches/nginx__1.13.0_http2_spdy.patch
@@ -76,7 +87,8 @@ HTTP_SPDY=YES
 HTTP_V2_HPACK_ENC=YES
 
 #再执行以下内容
-./configure --add-module=../ngx_brotli --add-module=../nginx-ct-1.3.2 --with-openssl=../openssl --with-http_v2_module --with-http_ssl_module --with-http_gzip_static_module
+./configure --add-module=../ngx_brotli --add-module=../nginx-ct-1.3.2 --with-openssl=../boringssl --with-http_v2_module --with-http_ssl_module --with-http_gzip_static_module
+touch ../boringssl/.openssl/include/openssl/ssl.h
 make
 sudo make install
 --------以上在bash中执行（打#号的内容为注释除外）-----------
