@@ -53,7 +53,7 @@ git clone https://github.com/cloudflare/sslconfig.git
 本站目前使用Boringssl(修复了SSL——BAD——MAC——RECORD的问题)：
 --------以下在bash中执行（打#号的内容为注释除外）-----------
 
-mv nginxconfig/boringssl.tar.gz ./
+cp nginxconfig/boringssl.tar.gz ./
 tar zxf boringssl.tar.gz
 mv boringssl
 cd boringssl
